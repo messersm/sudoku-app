@@ -1,0 +1,78 @@
+<NumberLabel>:
+    canvas.before:
+        Color:
+            rgba: self.bgcolor
+        Rectangle:
+            size: self.width, self.height
+            pos: self.pos
+    canvas:
+        Color:
+            rgba: 0.5, 0.5, 0.5, 1
+        Line:
+            width: 1
+            rectangle: (self.x, self.y, self.width, self.height)
+
+    halign: "center"
+    valign: "center"
+    color: 0, 0, 0, 1
+    font_size: "27sp"
+
+<SudokuGrid>:
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            size: self.width, self.height
+            pos: self.pos
+
+    canvas.after:
+        Color:
+            rgba: 0, 0, 0, 1
+        Line:
+            width: 1.5
+            rectangle: (self.x, self.y, self.width, self.height)
+        Line:
+            width: 1.5
+            rectangle: (self.x, self.y + self.height / 3, self.width, self.height / 3)
+        Line:
+            width: 1.5
+            rectangle: (self.width / 3, self.y, self.width / 3, self.height)
+
+<SudokuWidget>:
+    id: sudoku_widget
+    orientation: "vertical"
+
+    SudokuGrid
+
+    Slider:
+        min: -1
+        max: 0
+        value: 0
+        step: 1
+
+        value_track: True
+        # value_track_color: 1, 0, 0, 1
+
+        size_hint_y: 0.2
+
+    GridLayout:
+        cols: 3
+
+        Button:
+            text: "1"
+        Button:
+            text: "2"
+        Button:
+            text: "3"
+        Button:
+            text: "4"
+        Button:
+            text: "5"
+        Button:
+            text: "6"
+        Button:
+            text: "7"
+        Button:
+            text: "8"
+        Button:
+            text: "9"
