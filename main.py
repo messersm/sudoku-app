@@ -5,6 +5,7 @@
 from functools import wraps
 
 from kivy.app import App
+from kivy.config import Config
 from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -177,6 +178,9 @@ class NumberField(Label):
 
 
 class SudokuApp(App):
+    Config.set('graphics', 'width', '480')
+    Config.set('graphics', 'height', '800')
+    
     def build(self):
         return SudokuWidget()
 
