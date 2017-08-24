@@ -50,6 +50,8 @@ HARD_SOLUTION = """
 """
 
 VALID_NUMBERS = (1, 2, 3, 4, 5, 6, 7, 8, 9)
+ALL_NUMBERS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+ALL_INDECES = (0, 1, 2, 3, 4, 5, 6, 7, 8)
 
 def check_coords(f):
     """Decorator that checks, if the provided coordinates are valid."""
@@ -67,7 +69,7 @@ def require_empty(f):
     """Decorator that checks, if the provided field is empty."""
     @wraps(f)
     def wrapper(self, (x, y), *args, **kwargs):
-        if self[x, y] is not None:
+        if self[x, y] != 0:
             raise ValueError("(%d, %d) is not an empty field.")
         return f(self, (x, y), *args, **kwargs)
     return wrapper
@@ -79,7 +81,7 @@ class Sudoku(object):
         else:
             self.numbers = []
             for i in range(9):
-                self.numbers.append([None for j in range(9)])
+                self.numbers.append([0 for j in range(9)])
     
     def __setitem__(self, (x, y), value):
         """Set Sudoku to value at (x, y)
@@ -89,7 +91,7 @@ class Sudoku(object):
         >>> s *= 9
         >>> sud = Sudoku.from_str(s)
         >>> sud[4, 2] = 9
-        >>> sud[1, 1] = None
+        >>> sud[1, 1] = 0
         >>> print(sud)
         123456789
         103456789
@@ -101,9 +103,6 @@ class Sudoku(object):
         123456789
         123456789
         """
-
-        if value is not None and value not in range(1, 10):
-            raise ValueError("value must be between 1 and 9.")
 
         # YES: it's (y, x)
         self.numbers[y][x] = value
@@ -121,8 +120,8 @@ class Sudoku(object):
         Traceback (most recent call last):
             ...
         IndexError: ...
-        >>> str(sud[3, 4])
-        'None'
+        >>> sud[3, 4]
+        0
         >>> sud[3, 4] = 5
         >>> sud[3, 4]
         5
@@ -166,7 +165,7 @@ class Sudoku(object):
         """Return a list of conflict tuples ((x, y), (i, j), value)
         """
         value = self[x, y]
-        if value is None:
+        if value == 0:
             return []
 
         coords = self.column_coords((x, y))
@@ -179,8 +178,8 @@ class Sudoku(object):
 
     def find_all_conflicts(self):
         conflicts = []
-        for x in range(9):
-            for y in range(9):
+        for x in ALL_INDECES:
+            for y in ALL_INDECES:
                 xy_conflicts = self.find_conflicts((x, y))
 
 
@@ -206,11 +205,11 @@ class Sudoku(object):
         1.2.3.4.5.6.7.8.9
         """
         rows = []
-        for y in range(9):
+        for y in ALL_INDECES:
             column = []
 
-            for x in range(9):
-                if self[x, y] is None:
+            for x in ALL_INDECES:
+                if self[x, y] == 0:
                     column.append(empty)
                 else:
                     column.append(str(self[x, y]))
@@ -245,7 +244,7 @@ class Sudoku(object):
             if item in ignore:
                 continue
             elif item in empty:
-                sud[x, y] = None
+                sud[x, y] = 0
             else:
                 sud[x, y] = int(item)
             x += 1
@@ -258,7 +257,7 @@ class Sudoku(object):
         return sud
 
     def empty_coords(self):
-        return [(x, y) for x in range(9) for y in range(9) if self[x, y] is None]
+        return [(x, y) for x in ALL_INDECES for y in ALL_INDECES if self[x, y] == 0]
 
     def candidates(self, *coords):
         """Return a set of numbers that can be at (x, y).
@@ -288,7 +287,7 @@ class Sudoku(object):
         candidates = set()
 
         for (x, y) in coords:
-            if self[x, y] is not None:
+            if self[x, y] != 0:
                 cand = {self[x, y]}
             else:
                 cand = set(range(1, 10))
@@ -441,9 +440,12 @@ class Sudoku(object):
         return Sudoku(numbers=deepcopy(self.numbers))
 
 class SudokuWithCandidates(Sudoku):
-    def __init__(self, *args, **kwargs):
-        super(SudokuWithCandidates, self).__init__(*args, **kwargs)
-        self.__candidates = {}
+    def __init__(self, numbers=None, candidates=None):
+        super(SudokuWithCandidates, self).__init__(numbers=numbers)
+        if candidates:
+            self.__candidates = candidates
+        else:
+            self.__candidates = {}
 
     @check_coords
     def set_candidates(self, (x, y), *candidates):
@@ -457,10 +459,9 @@ class SudokuWithCandidates(Sudoku):
         return self.__candidates.get((x, y), list())
 
     def copy(self):
-        sud = super(SudokuWithCandidates, self).copy()
-        for (x, y), candidates in self.__candidates.items():
-            sud.set_candidates((x, y), *candidates)
-        return sud
+        return SudokuWithCandidates(
+            numbers=deepcopy(self.numbers),
+            candidates=deepcopy(self.__candidates))
 
 if __name__ == '__main__':
     import doctest

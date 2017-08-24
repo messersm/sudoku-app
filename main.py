@@ -95,7 +95,7 @@ class SudokuGrid(GridLayout):
         for x in range(9):
             for y in range(9):
                 item = sudoku[x, y]
-                if item is None:
+                if not item:
                     candidates = sudoku.get_candidates((x, y))
                     if candidates:
                         self.fields[(x, y)].set_candidates(candidates)
@@ -111,7 +111,7 @@ class SudokuGrid(GridLayout):
     def auto_candidates(self):
         (x, y) = self.selected_field.coords
         sudoku = self.current_sudoku()
-        if sudoku[x, y] is None:
+        if not sudoku[x, y]:
             candidates = sudoku.candidates((x, y))
             sudoku.set_candidates((x, y), *candidates)
 
