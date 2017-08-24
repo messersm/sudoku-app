@@ -441,7 +441,8 @@ class Sudoku(object):
         return Sudoku(numbers=deepcopy(self.numbers))
 
 class SudokuWithCandidates(Sudoku):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(SudokuWithCandidates, self).__init__(*args, **kwargs)
         self.__candidates = {}
 
     @check_coords
@@ -456,8 +457,7 @@ class SudokuWithCandidates(Sudoku):
         return self.__candidates.get((x, y), list())
 
     def copy(self):
-        sud = SudokuWithCandidates()
-        sud.update(self)
+        sud = super(SudokuWithCandidates, self).copy()
         for (x, y), candidates in self.__candidates.items():
             sud.set_candidates((x, y), *candidates)
         return sud
