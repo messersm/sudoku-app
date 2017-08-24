@@ -48,6 +48,7 @@ HARD_SOLUTION = """
 786435291
 """
 
+VALID_NUMBERS = (1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 def check_coords(f):
     """Decorator that checks, if the provided coordinates are valid."""
@@ -116,20 +117,20 @@ class Sudoku(dict):
         return [self[x, y] for (x, y) in coords]
 
     @check_coords
-    def column(self, (x, y)):
-        return self.__get_values(*self.column_coords((x, y)))
-
-    @check_coords
     def column_coords(self, (x, y)):
         return [(x, j) for j in range(9)]
 
     @check_coords
-    def row(self, (x, y)):
-        return self.__get_values(*self.row_coords((x, y)))
+    def column(self, (x, y)):
+        return self.__get_values(*self.column_coords((x, y)))
 
     @check_coords
     def row_coords(self, (x, y)):
         return [(i, y) for i in range(9)]
+
+    @check_coords
+    def row(self, (x, y)):
+        return self.__get_values(*self.row_coords((x, y)))
 
     @check_coords
     def grid(self, (x, y)):
@@ -150,6 +151,22 @@ class Sudoku(dict):
         y -= y % 3
 
         return [(x+i, y+j) for i in range(3) for j in range(3)]
+
+    @check_coords
+    def find_conflicts(self, (x, y)):
+        """Return a list of conflict tuples ((x, y), (i, j), value)
+        """
+        value = self[x, y]
+        if value is None:
+            return []
+
+        coords = self.column_coords((x, y))
+        coords.extend(self.row_coords(x, y))
+        coords.extend(self.grid_coords((x, y)))
+        while (x, y) in coords:
+            coords.remove((x, y))
+
+        return [((x, y), (i, j), value) for (i, j) in coords if self[i, j] == value]
 
     def __str__(self):
         return self.to_str()
@@ -338,6 +355,30 @@ class Sudoku(dict):
         while self.step():
             pass
 
+    def copy(self):
+        sud = Sudoku()
+        sud.update(self)
+        return sud
+
+class SudokuWithCandidates(Sudoku):
+    def __init__(self):
+        self._candidates = {}
+
+    @check_coords
+    def set_candidates(self, (x, y), *candidates):
+        for item in candidates:
+            if item not in VALID_NUMBERS:
+                raise ValueError("Candidates must be between 1 and 9.")
+        self._candidates[(x, y)] = candidates
+
+    @check_coords
+    def get_candidates(self, (x, y)):
+        return self._candidates.get((x, y), list())
+
+    def copy(self):
+        sud = super(SudokuWithCandidates, self).copy()
+        sud._candidates.update(self._candidates)
+        return sud
 
 if __name__ == '__main__':
     import doctest

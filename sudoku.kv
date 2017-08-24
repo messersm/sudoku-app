@@ -1,4 +1,4 @@
-<NumberLabel>:
+<NumberField>:
     canvas.before:
         Color:
             rgba: self.bgcolor
@@ -36,43 +36,80 @@
             rectangle: (self.x, self.y + self.height / 3, self.width, self.height / 3)
         Line:
             width: 1.5
-            rectangle: (self.width / 3, self.y, self.width / 3, self.height)
+            rectangle: (self.x + self.width / 3, self.y, self.width / 3, self.height)
 
 <SudokuWidget>:
-    id: sudoku_widget
     orientation: "vertical"
 
-    SudokuGrid
+    BoxLayout:
+        orientation: "horizontal"
 
-    Slider:
-        min: -1
-        max: 0
-        value: 0
-        step: 1
 
-        value_track: True
-        # value_track_color: 1, 0, 0, 1
+        Widget:
+            canvas:
+                Color:
+                    rgba: 1, 1, 1, 1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+        SudokuGrid:
+            id: grid
+            size_hint: (None, 1)
+            width: self.height
+        Widget:
+            canvas:
+                Color:
+                    rgba: 1, 1, 1, 1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
 
-        size_hint_y: 0.2
+#    Slider:
+#        min: -1
+#        max: 0
+#        value: 0
+#        step: 1
+#
+#        value_track: True
+#        # value_track_color: 1, 0, 0, 1
+#
+#        size_hint_y: 0.2
 
     GridLayout:
-        cols: 3
+        rows: 3
 
         Button:
             text: "1"
+            on_press: grid.enter_number(int(self.text))
         Button:
             text: "2"
+            on_press: grid.enter_number(int(self.text))
         Button:
             text: "3"
+            on_press: grid.enter_number(int(self.text))
+        Button:
+            text: "_"
+            on_press: grid.enter_number(None)
         Button:
             text: "4"
+            on_press: grid.enter_number(int(self.text))
         Button:
             text: "5"
+            on_press: grid.enter_number(int(self.text))
         Button:
             text: "6"
+            on_press: grid.enter_number(int(self.text))
+        Button:
+            text: "_ 2 3\n4 5 6\n7 8 9"
         Button:
             text: "7"
+            on_press: grid.enter_number(int(self.text))
         Button:
             text: "8"
+            on_press: grid.enter_number(int(self.text))
         Button:
             text: "9"
+            on_press: grid.enter_number(int(self.text))
+        Button:
+            text: "* 2 3\n4 5 6\n7 8 9"
+            on_press: grid.auto_candidates()
