@@ -334,12 +334,14 @@ class Sudoku(dict):
             else:
                 return None
 
-        # apply changes to a new sudoku
-        # TODO sort empty fields by candidate length and begin with the shortest (for performance)
-        next_coord = empty[0]
-        sudoku = self.copy()
+        # sort empty fields by candidate length and begin with the shortest (for performance)
+        empty_and_candidates = [(coord, self.candidates(coord)) for coord in empty]
+        empty_and_candidates.sort(key=lambda (coord, candidates): len(candidates))
+        next_coord, next_candidates = empty_and_candidates[0]
 
-        for candidate in self.candidates(next_coord):
+        # apply changes to a new sudoku
+        sudoku = self.copy()
+        for candidate in next_candidates:
             sudoku[next_coord] = candidate
             solved_sudoku = sudoku.bruteforce()
 
