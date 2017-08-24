@@ -180,11 +180,16 @@ class Sudoku(object):
 
     def find_conflicts(self, (x, y)):
         """Return a list of conflict tuples ((x, y), (i, j), value)
+
+        >>> sud = Sudoku.from_str(HARD_EXAMPLE)
+        >>> sud[2, 1] = 9
+        >>> sud.find_conflicts((2, 1))
+        [((2, 1), (2, 0), 9)]
         """
         value = self[x, y]
         if value == 0:
             return []
-
+        
         coords = self.column_coords((x, y))
         coords.extend(self.row_coords((x, y)))
         coords.extend(self.grid_coords((x, y)))
@@ -198,7 +203,9 @@ class Sudoku(object):
         for x in ALL_INDECES:
             for y in ALL_INDECES:
                 xy_conflicts = self.find_conflicts((x, y))
-
+                conflicts.extend(xy_conflicts)
+                
+        return conflicts
 
     def __str__(self):
         return self.to_str()
@@ -338,12 +345,9 @@ class Sudoku(object):
 
         # check this sudoku for being complete
         empty = self.empty_coords()
-        conflicts = self.find_all_conflicts()
         
-        if not empty and not conflicts:
+        if not empty:
             return self
-        elif conflicts:
-            return None
 
         # sort empty fields by candidate length and begin with the shortest (for performance)
         empty_and_candidates = [(coord, self.candidates(coord)) for coord in empty]
@@ -444,7 +448,11 @@ class Sudoku(object):
         >>> str(sud) == HARD_SOLUTION.strip()
         True
         """
-        self.apply_steps(self.iter_steps(), check_conflicts=True)
+
+        if self.find_all_conflicts():
+            return
+        else:
+            self.apply_steps(self.iter_steps())
 
     def copy(self):
         return Sudoku(numbers=deepcopy(self.numbers))
