@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# standard imports
+from functools import wraps
+
 from kivy.app import App
 from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -10,9 +13,20 @@ from kivy.uix.widget import Widget
 
 from sudokutools.sudoku import SudokuWithCandidates, HARD_EXAMPLE, VALID_NUMBERS
 
-
 class SudokuWidget(BoxLayout):
     pass
+
+
+def run_on_selected_field(f):
+    """Decorator that only runs f, if a field is selected."""
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        if self.selected_field:
+            result = f(self, *args, **kwargs)
+            self.selected_field.toggle_select(False)
+            self.selected_field = None
+            return result
+    return wrapper
 
 class SudokuGrid(GridLayout):
     def __init__(self, **kwargs):
@@ -30,7 +44,6 @@ class SudokuGrid(GridLayout):
                 self.add_widget(label)
                 self.fields[(x, y)] = label
 
-        self.sudokus[-1].set_candidates((0, 0), *VALID_NUMBERS)
         self.sync_sudoku_to_gui()
         self.lock_filled_fields()
 
@@ -61,13 +74,19 @@ class SudokuGrid(GridLayout):
                 if touch.is_double_tap:
                     pass
 
+    @run_on_selected_field
     def enter_number(self, number):
-        print(self.size)
+        field = self.selected_field
+        sudoku = self.sudokus[-1]
+        sudoku[field.coords] = number
+        sudoku.set_candidates(field.coords)
 
-        if self.selected_field:
-            coords = self.selected_field.coords
-            self.sudokus[-1][coords] = number
-            self.sync_sudoku_to_gui()
+        if sudoku.find_conflicts(field.coords):
+            field.toggle_invalid(True)
+        else:
+            field.toggle_select(False)
+
+        self.sync_sudoku_to_gui()
 
     def sync_sudoku_to_gui(self):
         sudoku = self.sudokus[-1]
@@ -79,26 +98,33 @@ class SudokuGrid(GridLayout):
                     candidates = sudoku.get_candidates((x, y))
                     if candidates:
                         self.fields[(x, y)].set_candidates(candidates)
+                    else:
+                        self.fields[(x, y)].set_number(None)
                 elif item in VALID_NUMBERS or item is None:
                     self.fields[(x, y)].set_number(item)
 
     def edit_candidates(self):
         pass
 
+    @run_on_selected_field
     def auto_candidates(self):
-        if self.selected_field:
-            (x, y) = self.selected_field.coords
-            sudoku = self.current_sudoku()
-            if sudoku[x, y] is None:
-                candidates = sudoku.candidates((x, y))
-                sudoku.set_candidates((x, y), *candidates)
+        (x, y) = self.selected_field.coords
+        sudoku = self.current_sudoku()
+        if sudoku[x, y] is None:
+            candidates = sudoku.candidates((x, y))
+            sudoku.set_candidates((x, y), *candidates)
 
-            self.sync_sudoku_to_gui()
+        self.sync_sudoku_to_gui()
+
+    def solve(self):
+        self.sudokus[-1].solve()
+        self.sync_sudoku_to_gui()
 
 class NumberField(Label):
     DEFAULT_BGCOLOR = (1, 1, 1, 0)
     LOCKED_BGCOLOR = (0.8, 0.8, 0.8, 0.5)
     SELECTED_BGCOLOR = (0.8, 0.8, 1, 0.5)
+    INVALID_BGCOLOR = (1, 0, 0, 1)
     bgcolor = ListProperty(DEFAULT_BGCOLOR)
 
     DEFAULT_FONT_SIZE = "27sp"
@@ -114,6 +140,12 @@ class NumberField(Label):
 
         if self.locked:
             self.bgcolor = self.LOCKED_BGCOLOR
+
+    def toggle_invalid(self, invalid=True):
+        if invalid:
+            self.bgcolor = self.INVALID_BGCOLOR
+        else:
+            self.bgcolor = self.DEFAULT_BGCOLOR
 
     def toggle_select(self, selected=True):
         if selected:

@@ -62,6 +62,14 @@ def check_coords(f):
         return f(self, (x, y), *args, **kwargs)
     return wrapper
 
+def require_empty(f):
+    """Decorator that checks, if the provided field is empty."""
+    @wraps(f)
+    def wrapper(self, (x, y), *args, **kwargs):
+        if self[x, y] is not None:
+            raise ValueError("(%d, %d) is not an empty field.")
+        return f(self, (x, y), *args, **kwargs)
+    return wrapper
 
 class Sudoku(dict):
     @check_coords
@@ -76,7 +84,7 @@ class Sudoku(dict):
         >>> sud[1, 1] = None
         >>> print(sud)
         123456789
-        1 3456789
+        103456789
         123496789
         123456789
         123456789
@@ -161,17 +169,24 @@ class Sudoku(dict):
             return []
 
         coords = self.column_coords((x, y))
-        coords.extend(self.row_coords(x, y))
+        coords.extend(self.row_coords((x, y)))
         coords.extend(self.grid_coords((x, y)))
         while (x, y) in coords:
             coords.remove((x, y))
 
         return [((x, y), (i, j), value) for (i, j) in coords if self[i, j] == value]
 
+    def find_all_conflicts(self):
+        conflicts = []
+        for x in range(9):
+            for y in range(9):
+                xy_conflicts = self.find_conflicts((x, y))
+
+
     def __str__(self):
         return self.to_str()
 
-    def to_str(self, column_sep='', row_sep='\n'):
+    def to_str(self, column_sep='', row_sep='\n', empty='0'):
         """
 
         Example:
@@ -195,7 +210,7 @@ class Sudoku(dict):
 
             for x in range(9):
                 if self[x, y] is None:
-                    column.append(' ')
+                    column.append(empty)
                 else:
                     column.append(str(self[x, y]))
 
@@ -300,49 +315,105 @@ class Sudoku(dict):
         candidates -= self.candidates(*coords)
         return candidates
 
-    def list_steps(self):
-        """Return a list of possible solve steps ((x, y), value, type).
+    def bruteforce(self):
+        """Returns a completly solved Sudoku instance or None
 
-        Examples:
-        >>> sud = Sudoku.from_str("123456780")
-        >>> sud.list_steps()
-        [((8, 0), 9, 'direct')]
+        >>> sudoku = Sudoku.from_str(HARD_EXAMPLE)
+        >>> solved = sudoku.bruteforce()
+        >>> str(sudoku) == HARD_EXAMPLE.strip()
+        True
+        >>> str(solved) == HARD_SOLUTION.strip()
+        True
         """
 
-        steps = []
-
-        for coord in self.empty_coords():
-            cand = self.candidates(coord)
-            if len(cand) == 0:
-                raise ValueError("Sudoku not solveable at %s" % coord)
-            # direct approach: does this field only have one
-            # candidate?
-            elif len(cand) == 1:
-                steps.append((coord, cand.pop(), "direct"))
-            # indirect approach: do the other fields only leave
-            # one number for this field?
+        # check this sudoku for being complete
+        empty = self.empty_coords()
+        if not empty:
+            if not self.find_all_conflicts():
+                return self
             else:
-                for f in self.column_coords, self.row_coords, \
-                         self.grid_coords:
+                return None
 
-                    cand = self.indirect_candidates(coord, *f(coord))
-                    if len(cand) == 1:
-                        steps.append((coord, cand.pop(), "indirect"))
-                        break
+        # apply changes to a new sudoku
+        # TODO sort empty fields by candidate length and begin with the shortest (for performance)
+        next_coord = empty[0]
+        sudoku = self.copy()
+
+        for candidate in self.candidates(next_coord):
+            sudoku[next_coord] = candidate
+            solved_sudoku = sudoku.bruteforce()
+
+            if solved_sudoku is not None:
+                return solved_sudoku
+
+        # If we do reach this point, no candidate was valid, thus
+        # the sudoku is not solveable.
+        return None
+
+    def bruteforce_steps(self):
+        solved = self.bruteforce()
+        steps = []
+        for (x, y) in self.empty_coords():
+            steps.append(((x, y), solved[x, y], "bruteforce"))
+
         return steps
 
-    def apply_steps(self, *steps):
+    @require_empty
+    @check_coords
+    def naked_single(self, (x, y)):
+        cand = self.candidates((x, y))
+        if len(cand) == 1:
+            return ((x, y), cand.pop(), "naked single")
+        else:
+            return None
+
+    @require_empty
+    @check_coords
+    def hidden_single(self, (x, y)):
+        for f in self.column_coords, self.row_coords, \
+                 self.grid_coords:
+
+            cand = self.indirect_candidates((x, y), *f((x, y)))
+            if len(cand) == 1:
+                return ((x, y), cand.pop(), "hidden single")
+        return None
+
+    def apply_steps(self, steps):
         for ((x, y), value, step_type) in steps:
             self[x, y] = value
 
+    def iter_steps(self):
+        """iterate through all possible solve steps ((x, y), value, type).
+        """
+
+        steps = []
+        empty = self.empty_coords()
+        for coord in empty:
+            value = self.naked_single(coord)
+            if value:
+                steps.append(value)
+                yield value
+                continue
+            value = self.hidden_single(coord)
+            if value:
+                steps.append(value)
+                yield value
+
+        # solve the rest using bruteforce
+        if len(steps) < len(empty):
+            sud = self.copy()
+            sud.apply_steps(steps)
+
+            for step in sud.bruteforce_steps():
+                yield step
+
     def step(self):
-        for ((x, y), value, step_type) in self.list_steps():
+        for ((x, y), value, step_type) in self.iter_steps():
             self[x, y] = value
             return ((x, y), value, step_type)
 
     def solve(self):
-        """
-
+        """Solve the Sudoku filling all (possible) fields.
 
         >>> sud = Sudoku.from_str(EASY_EXAMPLE)
         >>> sud.solve()
@@ -350,10 +421,10 @@ class Sudoku(dict):
         True
         >>> sud = Sudoku.from_str(HARD_EXAMPLE)
         >>> sud.solve()
-        >>> print(sud.to_str(column_sep='.'))
+        >>> str(sud) == HARD_SOLUTION.strip()
+        True
         """
-        while self.step():
-            pass
+        self.apply_steps(self.iter_steps())
 
     def copy(self):
         sud = Sudoku()
@@ -362,22 +433,24 @@ class Sudoku(dict):
 
 class SudokuWithCandidates(Sudoku):
     def __init__(self):
-        self._candidates = {}
+        self.__candidates = {}
 
     @check_coords
     def set_candidates(self, (x, y), *candidates):
         for item in candidates:
             if item not in VALID_NUMBERS:
                 raise ValueError("Candidates must be between 1 and 9.")
-        self._candidates[(x, y)] = candidates
+        self.__candidates[(x, y)] = candidates
 
     @check_coords
     def get_candidates(self, (x, y)):
-        return self._candidates.get((x, y), list())
+        return self.__candidates.get((x, y), list())
 
     def copy(self):
-        sud = super(SudokuWithCandidates, self).copy()
-        sud._candidates.update(self._candidates)
+        sud = SudokuWithCandidates()
+        sud.update(self)
+        for (x, y), candidates in self.__candidates.items():
+            sud.set_candidates((x, y), *candidates)
         return sud
 
 if __name__ == '__main__':
