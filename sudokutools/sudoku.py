@@ -1,4 +1,5 @@
 from functools import wraps
+from copy import deepcopy
 
 EASY_EXAMPLE = """
 003020600
@@ -71,8 +72,15 @@ def require_empty(f):
         return f(self, (x, y), *args, **kwargs)
     return wrapper
 
-class Sudoku(dict):
-    @check_coords
+class Sudoku(object):
+    def __init__(self, numbers=None):
+        if numbers:
+            self.numbers = numbers
+        else:
+            self.numbers = []
+            for i in range(9):
+                self.numbers.append([None for j in range(9)])
+    
     def __setitem__(self, (x, y), value):
         """Set Sudoku to value at (x, y)
 
@@ -97,54 +105,48 @@ class Sudoku(dict):
         if value is not None and value not in range(1, 10):
             raise ValueError("value must be between 1 and 9.")
 
-        super(Sudoku, self).__setitem__((x, y), value)
+        # YES: it's (y, x)
+        self.numbers[y][x] = value
 
-    @check_coords
     def __getitem__(self, (x, y)):
         """
 
         Examples:
         >>> sud = Sudoku()
-        >>> sud['0', 1]
+        >>> sud['0', 1] # doctest:+ELLIPSIS
         Traceback (most recent call last):
             ...
-        TypeError: x, y coordinates must be integers.
-        >>> sud[0, 11]
+        TypeError: ...
+        >>> sud[0, 11] # doctest:+ELLIPSIS
         Traceback (most recent call last):
             ...
-        ValueError: x, y coordinates must be between 0 and 8.
+        IndexError: ...
         >>> str(sud[3, 4])
         'None'
         >>> sud[3, 4] = 5
         >>> sud[3, 4]
         5
         """
-        return super(Sudoku, self).get((x, y), None)
+        return self.numbers[y][x]
 
     def __get_values(self, *coords):
         return [self[x, y] for (x, y) in coords]
 
-    @check_coords
     def column_coords(self, (x, y)):
         return [(x, j) for j in range(9)]
 
-    @check_coords
     def column(self, (x, y)):
         return self.__get_values(*self.column_coords((x, y)))
 
-    @check_coords
     def row_coords(self, (x, y)):
         return [(i, y) for i in range(9)]
 
-    @check_coords
     def row(self, (x, y)):
         return self.__get_values(*self.row_coords((x, y)))
 
-    @check_coords
     def grid(self, (x, y)):
         return self.__get_values(*self.grid_coords((x, y)))
 
-    @check_coords
     def grid_coords(self, (x, y)):
         """
 
@@ -160,7 +162,6 @@ class Sudoku(dict):
 
         return [(x+i, y+j) for i in range(3) for j in range(3)]
 
-    @check_coords
     def find_conflicts(self, (x, y)):
         """Return a list of conflict tuples ((x, y), (i, j), value)
         """
@@ -366,7 +367,6 @@ class Sudoku(dict):
         return steps
 
     @require_empty
-    @check_coords
     def naked_single(self, (x, y)):
         cand = self.candidates((x, y))
         if len(cand) == 1:
@@ -375,7 +375,6 @@ class Sudoku(dict):
             return None
 
     @require_empty
-    @check_coords
     def hidden_single(self, (x, y)):
         for f in self.column_coords, self.row_coords, \
                  self.grid_coords:
@@ -439,9 +438,7 @@ class Sudoku(dict):
         self.apply_steps(self.iter_steps(), check_conflicts=True)
 
     def copy(self):
-        sud = Sudoku()
-        sud.update(self)
-        return sud
+        return Sudoku(numbers=deepcopy(self.numbers))
 
 class SudokuWithCandidates(Sudoku):
     def __init__(self):
