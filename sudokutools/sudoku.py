@@ -80,8 +80,8 @@ class Sudoku(object):
             self.numbers = numbers
         else:
             self.numbers = []
-            for i in range(9):
-                self.numbers.append([0 for j in range(9)])
+            for i in ALL_INDECES:
+                self.numbers.append([0 for j in ALL_INDECES])
     
     def __setitem__(self, (x, y), value):
         """Set Sudoku to value at (x, y)
@@ -132,19 +132,36 @@ class Sudoku(object):
         return [self[x, y] for (x, y) in coords]
 
     def column_coords(self, (x, y)):
-        return [(x, j) for j in range(9)]
+        return [(x, j) for j in ALL_INDECES]
 
     def column(self, (x, y)):
-        return self.__get_values(*self.column_coords((x, y)))
+        """
+        >>> sud = Sudoku.from_str("123456789.777", ignore=('.'))
+        >>> sud.column((1, 5))
+        [2, 7, 0, 0, 0, 0, 0, 0, 0]
+        """
+        return [row[x] for row in self.numbers]
 
     def row_coords(self, (x, y)):
-        return [(i, y) for i in range(9)]
+        return [(i, y) for i in ALL_INDECES]
 
     def row(self, (x, y)):
-        return self.__get_values(*self.row_coords((x, y)))
+        return list(self.numbers[y])
 
     def grid(self, (x, y)):
-        return self.__get_values(*self.grid_coords((x, y)))
+        """
+        >>> sud = Sudoku.from_str("123456789.777", ignore=('.'))
+        >>> sud.grid((1, 2))
+        [1, 2, 3, 7, 7, 7, 0, 0, 0]
+        """
+        x -= x % 3
+        y -= y % 3
+
+        g = []
+        for row in self.numbers[y:y+3]:
+            g.extend(row[x:x+3])
+
+        return g
 
     def grid_coords(self, (x, y)):
         """
@@ -259,63 +276,56 @@ class Sudoku(object):
     def empty_coords(self):
         return [(x, y) for x in ALL_INDECES for y in ALL_INDECES if self[x, y] == 0]
 
-    def candidates(self, *coords):
+    def candidates(self, (x, y)):
         """Return a set of numbers that can be at (x, y).
 
         Example:
         >>> sud = Sudoku.from_str("087054301")
         >>> sud.candidates((0, 0))
-        set([9, 2, 6])
+        [2, 6, 9]
         >>> sud.candidates((1, 0))
-        set([8])
-        >>> sud.candidates((0, 0), (1, 0))
-        set([8, 9, 2, 6])
+        [8]
 
         >>> sud = Sudoku.from_str(HARD_EXAMPLE)
         >>> sud.candidates((0,0))
-        set([4, 5, 6])
+        [4, 5, 6]
         >>> sud.candidates((1, 0))
-        set([4, 5, 6, 7])
+        [4, 5, 6, 7]
         >>> sud.candidates((0, 1))
-        set([3, 5, 6])
-        >>> coords = sud.grid_coords((0, 1))
-        >>> coords.remove((0, 1))
-        >>> sud.candidates(*coords)
-        set([1, 2, 4, 5, 6, 7, 8, 9])
+        [3, 5, 6]
         """
 
-        candidates = set()
+        if self[x, y]:
+            return [self[x, y]]
 
-        for (x, y) in coords:
-            if self[x, y] != 0:
-                cand = {self[x, y]}
-            else:
-                cand = set(range(1, 10))
-                cand -= set(self.column((x, y)))
-                cand -= set(self.row((x, y)))
-                cand -= set(self.grid((x, y)))
+        candidates = set(VALID_NUMBERS)
+        candidates -= set(self.grid((x, y)))
+        candidates -= set(self.column((x, y)))
+        candidates -= set(self.row((x, y)))
 
-            candidates |= cand
-
-        return candidates
+        return list(candidates)
 
     def indirect_candidates(self, (x, y), *coords):
         """
         Example:
         >>> sud = Sudoku.from_str(HARD_EXAMPLE)
         >>> sud.indirect_candidates((0, 1), *sud.grid_coords((0, 1)))
-        set([3])
+        [3]
         """
-        candidates = set(range(1, 10))
+        candidates = list(VALID_NUMBERS)
         coords = list(coords)
         try:
             coords.remove((x, y))
         except:
             pass
-        candidates -= self.candidates(*coords)
-        return candidates
 
-    def bruteforce(self):
+        others = []
+        for coord in coords:
+            others.extend(self.candidates(coord))
+
+        return [num for num in VALID_NUMBERS if num not in others]
+
+    def bruteforce(self, candidates=None):
         """Returns a completly solved Sudoku instance or None
 
         >>> sudoku = Sudoku.from_str(HARD_EXAMPLE)
