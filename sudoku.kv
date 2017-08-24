@@ -87,8 +87,9 @@
 #
 #        size_hint_y: 0.2
 
-    GridLayout:
-        rows: 3
+    BoxLayout:
+        orientation: "horizontal"
+        size_hint: (1, 0.1)
 
         Button:
             text: "1"
@@ -100,9 +101,6 @@
             text: "3"
             on_press: grid.enter_number(int(self.text))
         Button:
-            text: "_"
-            on_press: grid.enter_number(None)
-        Button:
             text: "4"
             on_press: grid.enter_number(int(self.text))
         Button:
@@ -111,9 +109,6 @@
         Button:
             text: "6"
             on_press: grid.enter_number(int(self.text))
-        Button:
-            text: "* 2 3\n4 5 6\n7 8 9"
-            on_press: grid.auto_candidates()
         Button:
             text: "7"
             on_press: grid.enter_number(int(self.text))
@@ -124,5 +119,21 @@
             text: "9"
             on_press: grid.enter_number(int(self.text))
         Button:
+            text: " "
+            on_press: grid.enter_number(None)
+        Button:
+            font_size: "9sp"
+            text: "* 2 3\n4 5 6\n7 8 9"
+            on_press: grid.auto_candidates()
+
+    BoxLayout:
+        size_hint: (1, 0.1)
+        orientation: "horizontal"
+
+        Button:
             text: "solve"
             on_press: grid.solve()
+
+    Label:
+        size_hint: (1, 0.05)
+        text: "hint: bla bla bla"
