@@ -328,11 +328,12 @@ class Sudoku(dict):
 
         # check this sudoku for being complete
         empty = self.empty_coords()
-        if not empty:
-            if not self.find_all_conflicts():
-                return self
-            else:
-                return None
+        conflicts = self.find_all_conflicts()
+        
+        if not empty and not conflicts:
+            return self
+        elif conflicts:
+            return None
 
         # sort empty fields by candidate length and begin with the shortest (for performance)
         empty_and_candidates = [(coord, self.candidates(coord)) for coord in empty]
@@ -353,8 +354,12 @@ class Sudoku(dict):
         return None
 
     def bruteforce_steps(self):
-        solved = self.bruteforce()
         steps = []
+        
+        solved = self.bruteforce()
+        if solved is None:
+            return steps
+        
         for (x, y) in self.empty_coords():
             steps.append(((x, y), solved[x, y], "bruteforce"))
 
@@ -380,9 +385,14 @@ class Sudoku(dict):
                 return ((x, y), cand.pop(), "hidden single")
         return None
 
-    def apply_steps(self, steps):
+    def apply_steps(self, steps, check_conflicts=False):
         for ((x, y), value, step_type) in steps:
+            oldval = self[x, y]
             self[x, y] = value
+
+            if check_conflicts and self.find_conflicts((x, y)):
+                self[x, y] = oldval
+                return
 
     def iter_steps(self):
         """iterate through all possible solve steps ((x, y), value, type).
@@ -426,7 +436,7 @@ class Sudoku(dict):
         >>> str(sud) == HARD_SOLUTION.strip()
         True
         """
-        self.apply_steps(self.iter_steps())
+        self.apply_steps(self.iter_steps(), check_conflicts=True)
 
     def copy(self):
         sud = Sudoku()
