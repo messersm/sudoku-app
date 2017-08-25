@@ -6,37 +6,26 @@
             size: self.width, self.height
             pos: self.pos
 
+        # bottom line
         Color:
-            rgba: 0.5, 0.5, 0.5, 1
+            rgba: self.bottom_border_color
         Line:
-            width: 1
-            rectangle: (self.x, self.y, self.width, self.height)
+            width: self.bottom_border_width
+            # rectangle: (self.x, self.y, self.width, self.height)
+            points: self.x, self.y, self.x + self.width, self.y
+
+        # left line
+        Color:
+            rgba: self.left_border_color
+        
+        Line:
+            width: self.left_border_width
+            points: self.x, self.y, self.x, self.y + self.height
 
     halign: "center"
     valign: "middle"
     color: 0, 0, 0, 1
     font_size: "27sp"
-
-<SudokuGrid>:
-    #canvas.before:
-    #    Color:
-    #        rgba: 1, 1, 1, 1
-    #    Rectangle:
-    #        size: self.width, self.height
-    #        pos: self.pos
-
-    canvas.after:
-        Color:
-            rgba: 0, 0, 0, 1
-        Line:
-            width: 1.5
-            rectangle: (self.x, self.y, self.width, self.height)
-        Line:
-            width: 1.5
-            rectangle: (self.x, self.y + self.height / 3, self.width, self.height / 3)
-        Line:
-            width: 1.5
-            rectangle: (self.x + self.width / 3, self.y, self.width / 3, self.height)
 
 <SudokuWidget>:
     orientation: "vertical"

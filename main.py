@@ -6,7 +6,7 @@ from functools import wraps
 
 from kivy.app import App
 from kivy.config import Config
-from kivy.properties import ListProperty
+from kivy.properties import NumericProperty, ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
@@ -135,6 +135,16 @@ class NumberField(Label):
     INVALID_BGCOLOR = (1, 0, 0, 1)
     bgcolor = ListProperty(DEFAULT_BGCOLOR)
 
+    DEFAULT_BORDER_COLOR = (0.5, 0.5, 0.5, 1)
+    THICK_BORDER_COLOR = (0, 0, 0, 1)
+    left_border_color = ListProperty(DEFAULT_BORDER_COLOR)
+    bottom_border_color = ListProperty(DEFAULT_BORDER_COLOR)
+
+    DEFAULT_BORDER_WIDTH = 1
+    THICK_BORDER_WIDTH = 1.5
+    left_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
+    bottom_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
+
     DEFAULT_FONT_SIZE = "27sp"
     CANDIDATE_FONT_SIZE = "8sp"
 
@@ -142,6 +152,15 @@ class NumberField(Label):
         super(NumberField, self).__init__(**kwargs)
         self.coords = coords
         self.locked = locked
+
+        (x, y) = coords
+        if x % 3 == 0:
+            self.left_border_color = self.THICK_BORDER_COLOR
+            self.left_border_width = self.THICK_BORDER_WIDTH
+
+        if y % 3 == 2:
+            self.bottom_border_color = self.THICK_BORDER_COLOR
+            self.bottom_border_width = self.THICK_BORDER_WIDTH
 
     def lock(self, locked=True):
         self.locked = locked
