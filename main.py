@@ -12,7 +12,8 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 
-from sudokutools.sudoku import SudokuWithCandidates, HARD_EXAMPLE, VALID_NUMBERS
+from sudokutools.sudoku import SudokuWithCandidates, \
+    HARD_EXAMPLE, VALID_NUMBERS
 
 class SudokuWidget(BoxLayout):
     pass
@@ -121,10 +122,16 @@ class SudokuGrid(GridLayout):
         self.sudokus[-1].solve()
         self.sync_sudoku_to_gui()
 
+    @run_on_selected_field
+    def solve_field(self):
+        coords = self.selected_field.coords
+        self.current_sudoku().solve_field(coords)
+        self.sync_sudoku_to_gui()
+
 class NumberField(Label):
-    DEFAULT_BGCOLOR = (1, 1, 1, 0)
-    LOCKED_BGCOLOR = (0.8, 0.8, 0.8, 0.5)
-    SELECTED_BGCOLOR = (0.8, 0.8, 1, 0.5)
+    DEFAULT_BGCOLOR = (1, 1, 1, 1)
+    LOCKED_BGCOLOR = (0.8, 0.8, 0.8, 1)
+    SELECTED_BGCOLOR = (0.8, 0.8, 1, 1)
     INVALID_BGCOLOR = (1, 0, 0, 1)
     bgcolor = ListProperty(DEFAULT_BGCOLOR)
 

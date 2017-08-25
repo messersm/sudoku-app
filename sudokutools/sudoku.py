@@ -454,6 +454,13 @@ class Sudoku(object):
         else:
             self.apply_steps(self.iter_steps())
 
+    def solve_field(self, (x, y)):
+        sudoku = self.copy()
+        for ((i, j), value, step_type) in sudoku.iter_steps():
+            if (x, y) == (i, j):
+                self[x, y] = value
+                break
+
     def copy(self):
         return Sudoku(numbers=deepcopy(self.numbers))
 
