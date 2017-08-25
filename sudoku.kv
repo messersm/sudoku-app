@@ -33,22 +33,28 @@
             rectangle: (self.x, self.y, self.width, self.height)
         Line:
             width: 1.5
-            rectangle: (self.x, self.y + self.height / 3.0, self.width, self.height / 3.0)
+            rectangle: (self.x, self.y + self.height / 3, self.width, self.height / 3)
         Line:
             width: 1.5
-            rectangle: (self.x + self.width / 3.0, self.y, self.width / 3.0, self.height)
+            rectangle: (self.x + self.width / 3, self.y, self.width / 3, self.height)
 
 <SudokuWidget>:
     orientation: "vertical"
 
     BoxLayout:
         orientation: "horizontal"
-        size_hint: (1, 0.1)
+        size_hint: (1, 0.4)
 
         Label:
             size_hint: (0.8, 1)
             halign: 'left' # is ignored
             text: "Sudoku"
+
+        # Settings button
+        # Button:
+            # size_hint: (0.2, 1)
+            # text: "Settings"
+            # on_release: app.open_settings()
 
         # Help Dropdown:
         BoxLayout:
@@ -74,13 +80,13 @@
                     on_release: grid.auto_candidates(), help_dropdown.select(self)
 
                 Button:
-                    text: "solve field"
+                    text: "Solve\nfield"
                     size_hint_y: None
                     height: help_button.height
                     on_release: grid.solve_field(), help_dropdown.select(self)
 
                 Button:
-                    text: "solve all"
+                    text: "Solve\nall"
                     size_hint_y: None
                     height: help_button.height
                     on_release: grid.solve(), help_dropdown.select(self)
@@ -123,20 +129,16 @@
         width: self.parent.width
         height: self.width
 
-#    Slider:
-#        min: -1
-#        max: 0
-#        value: 0
-#        step: 1
-#
-#        value_track: True
-#        # value_track_color: 1, 0, 0, 1
-#
-#        size_hint_y: 0.2
+    # Slider:
+        # min: -1
+        # max: 0
+        # value: 0
+        # step: 1
+        # size_hint: (1, 0.2)
 
     BoxLayout:
         orientation: "horizontal"
-        size_hint: (1, 0.1)
+        size_hint: (1, 0.2)
 
         NumberButton:
             text: "1"
@@ -170,10 +172,8 @@
             on_press: grid.enter_number(0)
 
     Label:
-        size_hint: (1, 0.48)
+        size_hint: (1, 0.4)
         # text: "Hint: double tap a field to edit candidates."
 
 <NumberButton@Button>:
-    size_hint: (None, None)
-    width: float(self.parent.width) / len(self.parent.children)
-    height: self.width
+    size_hint: (1.0 / len(self.parent.children), 1)
