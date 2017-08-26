@@ -3,10 +3,11 @@
 
 # standard imports
 from functools import wraps
+from collections import namedtuple
 
 from kivy.app import App
 from kivy.config import Config
-from kivy.properties import NumericProperty, ListProperty
+from kivy.properties import NumericProperty, ObjectProperty, ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
@@ -15,20 +16,10 @@ from kivy.uix.widget import Widget
 from sudokutools.sudoku import SudokuWithCandidates, \
     HARD_EXAMPLE, VALID_NUMBERS
 
+from numberfield import NumberField
+
 class SudokuWidget(BoxLayout):
     pass
-
-
-def run_on_selected_field(f):
-    """Decorator that only runs f, if a field is selected."""
-    @wraps(f)
-    def wrapper(self, *args, **kwargs):
-        if self.selected_field:
-            result = f(self, *args, **kwargs)
-            self.selected_field.toggle_select(False)
-            self.selected_field = None
-            return result
-    return wrapper
 
 class SudokuGrid(GridLayout):
     def __init__(self, **kwargs):
@@ -49,7 +40,22 @@ class SudokuGrid(GridLayout):
         self.sync_sudoku_to_gui()
         self.lock_filled_fields()
 
-    def current_sudoku(self):
+    def enter_number(self, number):
+        if self.selected_field:
+            self.selected_field.input(number)
+
+    def push_style(self, style, *coords):
+        """Pushes a background style to all given coordinates."""
+
+        for coord in coords:
+            self.fields[coords].push(style)
+
+    def pop_style(self, style, *coords):
+        for coord in coords:
+            self.fields[coords].pop(style)
+
+    @property
+    def sudoku(self):
         return self.sudokus[-1]
 
     def lock_filled_fields(self):
@@ -58,150 +64,30 @@ class SudokuGrid(GridLayout):
                 if self.sudokus[-1][x, y] in VALID_NUMBERS:
                     self.fields[(x, y)].lock()
 
-    def on_touch_down(self, touch):
-        for field in self.fields.values():
-            if field.collide_point(*touch.pos):
-                if self.selected_field:
-                    self.selected_field.toggle_select(False)
-
-                if field == self.selected_field:
-                    self.selected_field = None
-                elif not field.locked:
-                    self.selected_field = field
-                    field.toggle_select(True)
-                else:
-                    self.selected_field = None
-
-                # enter candidate edit mode
-                if touch.is_double_tap:
-                    pass
-
-    @run_on_selected_field
-    def enter_number(self, number):
-        field = self.selected_field
-        sudoku = self.sudokus[-1]
-        sudoku[field.coords] = number
-        sudoku.set_candidates(field.coords)
-
-        if sudoku.find_conflicts(field.coords):
-            field.toggle_invalid(True)
-        else:
-            field.toggle_select(False)
-
-        self.sync_sudoku_to_gui()
-
     def sync_sudoku_to_gui(self):
-        sudoku = self.sudokus[-1]
-
         for x in range(9):
             for y in range(9):
-                item = sudoku[x, y]
+                item = self.sudoku[x, y]
                 if not item:
-                    candidates = sudoku.get_candidates((x, y))
-                    if candidates:
-                        self.fields[(x, y)].set_candidates(candidates)
-                    else:
-                        self.fields[(x, y)].set_number(None)
+                    candidates = self.sudoku.get_candidates((x, y))
+                    self.fields[(x, y)].content = candidates
                 elif item in VALID_NUMBERS or item is None:
-                    self.fields[(x, y)].set_number(item)
+                    self.fields[(x, y)].content = item
 
-    def edit_candidates(self):
-        pass
-
-    @run_on_selected_field
     def auto_candidates(self):
-        (x, y) = self.selected_field.coords
-        sudoku = self.current_sudoku()
-        if not sudoku[x, y]:
-            candidates = sudoku.candidates((x, y))
-            sudoku.set_candidates((x, y), *candidates)
-
-        self.sync_sudoku_to_gui()
+        if self.selected_field:
+            field = self.selected_field
+            candidates = self.sudoku.candidates(field.coords)
+            field.content = candidates
 
     def solve(self):
-        self.sudokus[-1].solve()
+        self.sudoku.solve()
         self.sync_sudoku_to_gui()
 
-    @run_on_selected_field
     def solve_field(self):
-        coords = self.selected_field.coords
-        self.current_sudoku().solve_field(coords)
-        self.sync_sudoku_to_gui()
-
-class NumberField(Label):
-    DEFAULT_BGCOLOR = (1, 1, 1, 1)
-    LOCKED_BGCOLOR = (0.8, 0.8, 0.8, 1)
-    SELECTED_BGCOLOR = (0.8, 0.8, 1, 1)
-    INVALID_BGCOLOR = (1, 0, 0, 1)
-    bgcolor = ListProperty(DEFAULT_BGCOLOR)
-
-    DEFAULT_BORDER_COLOR = (0.5, 0.5, 0.5, 1)
-    THICK_BORDER_COLOR = (0, 0, 0, 1)
-    left_border_color = ListProperty(DEFAULT_BORDER_COLOR)
-    bottom_border_color = ListProperty(DEFAULT_BORDER_COLOR)
-
-    DEFAULT_BORDER_WIDTH = 1
-    THICK_BORDER_WIDTH = 1.5
-    left_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
-    bottom_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
-
-    DEFAULT_FONT_SIZE = "27sp"
-    CANDIDATE_FONT_SIZE = "8sp"
-
-    def __init__(self, coords=(-1, -1), locked=False, **kwargs):
-        super(NumberField, self).__init__(**kwargs)
-        self.coords = coords
-        self.locked = locked
-
-        (x, y) = coords
-        if x % 3 == 0:
-            self.left_border_color = self.THICK_BORDER_COLOR
-            self.left_border_width = self.THICK_BORDER_WIDTH
-
-        if y % 3 == 2:
-            self.bottom_border_color = self.THICK_BORDER_COLOR
-            self.bottom_border_width = self.THICK_BORDER_WIDTH
-
-    def lock(self, locked=True):
-        self.locked = locked
-
-        if self.locked:
-            self.bgcolor = self.LOCKED_BGCOLOR
-
-    def toggle_invalid(self, invalid=True):
-        if invalid:
-            self.bgcolor = self.INVALID_BGCOLOR
-        else:
-            self.bgcolor = self.DEFAULT_BGCOLOR
-
-    def toggle_select(self, selected=True):
-        if selected:
-            self.bgcolor = self.SELECTED_BGCOLOR
-        else:
-            self.bgcolor = self.DEFAULT_BGCOLOR
-
-    def set_candidates(self, candidates):
-        s = ""
-        for n in VALID_NUMBERS:
-            if n in candidates:
-                s += str(n)
-            else:
-                s += '  '
-            s += ' '
-            if n % 3 == 0 and n < 9:
-                s += '\n'
-
-        self.font_size = self.CANDIDATE_FONT_SIZE
-        self.text = s
-
-    def set_number(self, number):
-        self.font_size = self.DEFAULT_FONT_SIZE
-
-        if number is None:
-            self.text = ''
-        else:
-            self.text = str(number)
-
+        if self.selected_field:
+            self.sudoku.solve_field(self.selected_field.coords)
+            self.sync_sudoku_to_gui()
 
 class SudokuApp(App):
     Config.set('graphics', 'width', '480')

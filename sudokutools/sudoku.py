@@ -178,6 +178,15 @@ class Sudoku(object):
 
         return [(x+i, y+j) for i in range(3) for j in range(3)]
 
+    def surrounding_coords(self, (x, y)):
+        coords = self.column_coords((x, y))
+        coords.extend(self.row_coords((x, y)))
+        coords.extend(self.grid_coords((x, y)))
+        while (x, y) in coords:
+            coords.remove((x, y))
+
+        return coords
+
     def find_conflicts(self, (x, y)):
         """Return a list of conflict tuples ((x, y), (i, j), value)
 
@@ -190,12 +199,7 @@ class Sudoku(object):
         if value == 0:
             return []
         
-        coords = self.column_coords((x, y))
-        coords.extend(self.row_coords((x, y)))
-        coords.extend(self.grid_coords((x, y)))
-        while (x, y) in coords:
-            coords.remove((x, y))
-
+        coords = self.surrounding_coords((x, y))
         return [((x, y), (i, j), value) for (i, j) in coords if self[i, j] == value]
 
     def find_all_conflicts(self):
@@ -473,15 +477,18 @@ class SudokuWithCandidates(Sudoku):
             self.__candidates = {}
 
     @check_coords
-    def set_candidates(self, (x, y), *candidates):
-        for item in candidates:
-            if item not in VALID_NUMBERS:
-                raise ValueError("Candidates must be between 1 and 9.")
-        self.__candidates[(x, y)] = candidates
+    def set_candidates(self, (x, y), candidates):
+        if candidates is None:
+            self.__candidates.pop((x, y), None)
+        else:
+            for item in candidates:
+                if item not in VALID_NUMBERS:
+                    raise ValueError("Candidates must be between 1 and 9.")
+            self.__candidates[(x, y)] = list(candidates)
 
     @check_coords
     def get_candidates(self, (x, y)):
-        return self.__candidates.get((x, y), list())
+        return self.__candidates.get((x, y), None)
 
     def copy(self):
         return SudokuWithCandidates(
