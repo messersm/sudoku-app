@@ -133,9 +133,10 @@ class InputNumber(Selected):
         
         if number in VALID_NUMBERS:
             field.content = number
+            field.set_state(Unselected)
         else:
             field.content = None
-            field.set_state(Unselected)
+
 
 class InputCandidates(Selected):
     @classmethod
@@ -151,10 +152,14 @@ class InputCandidates(Selected):
             candidates = list(field.content)
             if number in candidates:
                 candidates.remove(number)
-                field.content = candidates
+                if len(candidates) == 1:
+                    field.content = candidates[0]
+                    field.set_state(Unselected)
+                else:
+                    field.content = candidates
             else:
                 candidates.append(number)
                 field.content = candidates
         else:
             field.content = None
-            field.set_state(Unselected)
+
