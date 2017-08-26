@@ -1,78 +1,13 @@
 from functools import wraps
 from copy import deepcopy
 
-EASY_EXAMPLE = """
-003020600
-900305001
-001806400
-008102900
-700000008
-006708200
-002609500
-800203009
-005010300
-"""
-
-EASY_SOLUTION = """
-483921657
-967345821
-251876493
-548132976
-729564138
-136798245
-372689514
-814253769
-695417382
-"""
-
-HARD_EXAMPLE = """
-009003008
-010040020
-200700400
-800600700
-090070010
-003004002
-005001007
-030090050
-700400200
-"""
-
-HARD_SOLUTION = """
-469523178
-317948526
-258716439
-821659743
-694372815
-573184962
-945261387
-132897654
-786435291
-"""
+from examples import EXAMPLES
+from coord import column_coords, row_coords, \
+    quad_coords, surrounding_coords
 
 VALID_NUMBERS = (1, 2, 3, 4, 5, 6, 7, 8, 9)
 ALL_NUMBERS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 ALL_INDECES = (0, 1, 2, 3, 4, 5, 6, 7, 8)
-
-def check_coords(f):
-    """Decorator that checks, if the provided coordinates are valid."""
-    @wraps(f)
-    def wrapper(self, (x, y), *args, **kwargs):
-        if not isinstance(x, int) or not isinstance(y, int):
-            raise TypeError("x, y coordinates must be integers.")
-        if x not in range(9) or y not in range(9):
-            raise ValueError("x, y coordinates must be between 0 and 8.")
-
-        return f(self, (x, y), *args, **kwargs)
-    return wrapper
-
-def require_empty(f):
-    """Decorator that checks, if the provided field is empty."""
-    @wraps(f)
-    def wrapper(self, (x, y), *args, **kwargs):
-        if self[x, y] != 0:
-            raise ValueError("(%d, %d) is not an empty field.")
-        return f(self, (x, y), *args, **kwargs)
-    return wrapper
 
 class Sudoku(object):
     def __init__(self, numbers=None):
@@ -131,9 +66,6 @@ class Sudoku(object):
     def __get_values(self, *coords):
         return [self[x, y] for (x, y) in coords]
 
-    def column_coords(self, (x, y)):
-        return [(x, j) for j in ALL_INDECES]
-
     def column(self, (x, y)):
         """
         >>> sud = Sudoku.from_str("123456789.777", ignore=('.'))
@@ -141,9 +73,6 @@ class Sudoku(object):
         [2, 7, 0, 0, 0, 0, 0, 0, 0]
         """
         return [row[x] for row in self.numbers]
-
-    def row_coords(self, (x, y)):
-        return [(i, y) for i in ALL_INDECES]
 
     def row(self, (x, y)):
         return list(self.numbers[y])
@@ -163,43 +92,14 @@ class Sudoku(object):
 
         return g
 
-    def grid_coords(self, (x, y)):
-        """
-
-        Examples:
-        >>> sud = Sudoku()
-        >>> sud.grid_coords((1, 1))
-        [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
-        >>> sud.grid_coords((4, 8))
-        [(3, 6), (3, 7), (3, 8), (4, 6), (4, 7), (4, 8), (5, 6), (5, 7), (5, 8)]
-        """
-        x -= x % 3
-        y -= y % 3
-
-        return [(x+i, y+j) for i in range(3) for j in range(3)]
-
-    def surrounding_coords(self, (x, y)):
-        coords = self.column_coords((x, y))
-        coords.extend(self.row_coords((x, y)))
-        coords.extend(self.grid_coords((x, y)))
-        while (x, y) in coords:
-            coords.remove((x, y))
-
-        return coords
-
     def find_conflicts(self, (x, y)):
         """Return a list of conflict tuples ((x, y), (i, j), value)
-
-        >>> sud = Sudoku.from_str(HARD_EXAMPLE)
-        >>> sud[2, 1] = 9
-        >>> sud.find_conflicts((2, 1))
-        [((2, 1), (2, 0), 9)]
         """
         value = self[x, y]
         if value == 0:
             return []
         
-        coords = self.surrounding_coords((x, y))
+        coords = surrounding_coords((x, y), include=False)
         return [((x, y), (i, j), value) for (i, j) in coords if self[i, j] == value]
 
     def find_all_conflicts(self):
@@ -296,14 +196,6 @@ class Sudoku(object):
         [2, 6, 9]
         >>> sud.candidates((1, 0))
         [8]
-
-        >>> sud = Sudoku.from_str(HARD_EXAMPLE)
-        >>> sud.candidates((0,0))
-        [4, 5, 6]
-        >>> sud.candidates((1, 0))
-        [4, 5, 6, 7]
-        >>> sud.candidates((0, 1))
-        [3, 5, 6]
         """
 
         if self[x, y]:
@@ -318,10 +210,6 @@ class Sudoku(object):
 
     def indirect_candidates(self, (x, y), *coords):
         """
-        Example:
-        >>> sud = Sudoku.from_str(HARD_EXAMPLE)
-        >>> sud.indirect_candidates((0, 1), *sud.grid_coords((0, 1)))
-        [3]
         """
         candidates = list(VALID_NUMBERS)
         coords = list(coords)
@@ -339,11 +227,11 @@ class Sudoku(object):
     def bruteforce(self, candidates=None):
         """Returns a completly solved Sudoku instance or None
 
-        >>> sudoku = Sudoku.from_str(HARD_EXAMPLE)
+        >>> sudoku = Sudoku.from_str(EXAMPLES[1][0])
         >>> solved = sudoku.bruteforce()
-        >>> str(sudoku) == HARD_EXAMPLE.strip()
+        >>> str(sudoku) == EXAMPLES[1][0].strip()
         True
-        >>> str(solved) == HARD_SOLUTION.strip()
+        >>> str(solved) == EXAMPLES[1][1].strip()
         True
         """
 
@@ -383,7 +271,6 @@ class Sudoku(object):
 
         return steps
 
-    @require_empty
     def naked_single(self, (x, y)):
         cand = self.candidates((x, y))
         if len(cand) == 1:
@@ -391,11 +278,8 @@ class Sudoku(object):
         else:
             return None
 
-    @require_empty
     def hidden_single(self, (x, y)):
-        for f in self.column_coords, self.row_coords, \
-                 self.grid_coords:
-
+        for f in column_coords, row_coords, quad_coords:
             cand = self.indirect_candidates((x, y), *f((x, y)))
             if len(cand) == 1:
                 return ((x, y), cand.pop(), "hidden single")
@@ -443,13 +327,12 @@ class Sudoku(object):
     def solve(self):
         """Solve the Sudoku filling all (possible) fields.
 
-        >>> sud = Sudoku.from_str(EASY_EXAMPLE)
-        >>> sud.solve()
-        >>> str(sud) == EASY_SOLUTION.strip()
-        True
-        >>> sud = Sudoku.from_str(HARD_EXAMPLE)
-        >>> sud.solve()
-        >>> str(sud) == HARD_SOLUTION.strip()
+        >>> solve_works = True
+        >>> for example, solution in EXAMPLES:
+        ...     sud = Sudoku.from_str(example)
+        ...     sud.solve()
+        ...     solve_works &= (str(sud) == solution.strip())
+        >>> solve_works
         True
         """
 
@@ -476,7 +359,6 @@ class SudokuWithCandidates(Sudoku):
         else:
             self.__candidates = {}
 
-    @check_coords
     def set_candidates(self, (x, y), candidates):
         if candidates is None:
             self.__candidates.pop((x, y), None)
@@ -486,7 +368,6 @@ class SudokuWithCandidates(Sudoku):
                     raise ValueError("Candidates must be between 1 and 9.")
             self.__candidates[(x, y)] = list(candidates)
 
-    @check_coords
     def get_candidates(self, (x, y)):
         return self.__candidates.get((x, y), None)
 

@@ -10,6 +10,7 @@ FieldState
 
 from fieldstyle import COLORS
 from sudokutools.sudoku import VALID_NUMBERS
+from sudokutools.coord import surrounding_coords
 
 class FieldState(object):
     @classmethod
@@ -100,7 +101,7 @@ class Selected(FieldState):
 
     @classmethod
     def _show_influenced(cls, field, show=True):
-        for coord in field.sudoku.surrounding_coords(field.coords):
+        for coord in surrounding_coords(field.coords, include=False):
             color = COLORS["influenced"]
             if show:
                 field.parent.fields[coord].style.push(color)

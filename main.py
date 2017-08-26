@@ -13,8 +13,10 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 
-from sudokutools.sudoku import SudokuWithCandidates, \
-    HARD_EXAMPLE, VALID_NUMBERS
+from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
+from sudokutools.examples import EXAMPLES
+
+HARD_EXAMPLE = EXAMPLES[1][0]
 
 from numberfield import NumberField
 
