@@ -8,7 +8,7 @@ from fieldstyle import FieldStyle
 from sudokutools.sudoku import VALID_NUMBERS
 
 DEFAULT_FONT_SIZE = "27sp"
-CANDIDATE_FONT_SIZE = "8sp"
+CANDIDATE_FONT_SIZE = "12sp"
 
 class NumberField(Label):
     bgcolor = ListProperty((1, 1, 1, 1))
