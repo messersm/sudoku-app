@@ -98,6 +98,19 @@ class Selected(FieldState):
     def on_exit(cls, field):
         field.style.pop(COLORS["selected"])
         cls._show_influenced(field, False)
+        cls._mark_invalid(field)
+
+    @classmethod
+    def _mark_invalid(cls, field):
+        color = COLORS["invalid"]
+        conflicts = field.sudoku.find_conflicts(field.coords)
+
+        if conflicts:
+            field.style.push(color)
+        else:
+            # TODO: really ugly...
+            while color in field.style.colors:
+                field.style.pop(color)
 
     @classmethod
     def _show_influenced(cls, field, show=True):
