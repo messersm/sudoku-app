@@ -80,37 +80,38 @@
                     height: help_button.height
                     on_release: grid.solve(), help_dropdown.select(self)
         
-
         # Settings Button
         # Button:
             # text: "Settings"
             # on_release: app.open_settings()
 
-        # Menu Dropdown
-        # BoxLayout:
-            # size_hint: (0.2, 1)
+        # Menu DropDown
+        BoxLayout:
+            size_hint: (0.2, 1)
         
-            # Button:
-                # id: menu_button
-                # text: "Menu"
-                # on_release: menu_dropdown.open(self)
-                # size_hint_y: None
-                # height: self.parent.height
+            Button:
+                id: menu_button
+                # size_hint: (0.2, 1)
+                text: "Menu"
+                on_release: menu_dropdown.open(self)
+                size_hint_y: None
+                height: self.parent.height
 
-            # DropDown:
-                # id: menu_dropdown
-                # on_parent: self.dismiss()
-                # on_select: menu_button.text = '{}'.format(args[1])
+            DropDown:
+                id: menu_dropdown
+                on_parent: self.dismiss()
 
-                # Button:
-                    # text: "new"
-                    # size_hint_y: None
-                    # height: menu_button.height
-                    
-                # Button:
-                    # text: "old"
-                    # size_hint_y: None
-                    # height: menu_button.height
+                Button:
+                    text: "New"
+                    size_hint_y: None
+                    height: menu_button.height
+                    on_release: grid.new_sudoku(), menu_dropdown.select(self)
+
+                Button:
+                    text: "Clear"
+                    size_hint_y: None
+                    height: menu_button.height
+                    on_release: grid.clear(), menu_dropdown.select(self)
 
     SudokuGrid:
         id: grid
