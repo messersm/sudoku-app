@@ -16,6 +16,7 @@ from kivy.storage.jsonstore import JsonStore
 
 # local imports
 from sudokulib.field import Field
+from sudokulib.popup import CallbackPopup
 from sudokutools.examples import EXAMPLES
 from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
 
@@ -29,11 +30,6 @@ class SudokuWidget(BoxLayout):
 
     def save_state(self, filename=STATEFILE):
         self.grid.save_state(filename=filename)
-
-
-class WinPopup(Popup):
-    grid = ObjectProperty(None)
-
 
 class CustomErrorPopup(Popup):
     grid = ObjectProperty(None)
@@ -86,12 +82,18 @@ class SudokuGrid(GridLayout):
         ret = self.sudoku.is_unique()
 
         if ret is None:
-            error = CustomErrorPopup()
-            error.grid = self
+            error = CallbackPopup(
+                title="Error: Sudoku is not valid.",
+                text="Your Sudoku has no solution.",
+                callbacks=[("Back", lambda: None)])
             error.open()
         elif ret is False:
-            warning = CustomWarningPopup()
-            warning.grid = self
+            warning = CallbackPopup(
+                title="Warning: Sudoku is not unique",
+                text="Your Sudoku has multiple solutions.",
+                callbacks=[
+                    ("Back", lambda: None),
+                    ("Play anyway!", self.end_edit_custom_sudoku)])
             warning.open()
         elif ret is True:
             self.end_edit_custom_sudoku()
@@ -106,8 +108,12 @@ class SudokuGrid(GridLayout):
             return
 
         self.sudoku_won = True
-        winpopup = WinPopup()
-        winpopup.grid = self
+        winpopup = CallbackPopup(
+            title="Sudoku complete",
+            text="Congratulations, you have won!",
+            callbacks=[
+                ("Back", lambda: None),
+                ("New Sudoku", self.new_sudoku)])
         winpopup.open()
 
     # TODO: Move this code to sudokutools
