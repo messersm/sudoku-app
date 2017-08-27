@@ -9,6 +9,8 @@ from kivy.app import App
 from kivy.config import Config
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.popup import Popup
+from kivy.properties import ObjectProperty
 
 from sudokutools.examples import EXAMPLES
 from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
@@ -20,6 +22,9 @@ from sudokulib.fieldstate import Locked
 
 class SudokuWidget(BoxLayout):
     pass
+
+class WinPopup(Popup):
+    grid = ObjectProperty(None)
 
 class SudokuGrid(GridLayout):
     def __init__(self, **kwargs):
@@ -37,7 +42,22 @@ class SudokuGrid(GridLayout):
                 self.fields[(x, y)] = label
 
         self.new_sudoku()
-        
+
+    def sudoku_complete(self):
+        winpopup = WinPopup()
+        winpopup.grid = self
+        winpopup.open()
+
+    # TODO: Move this code to sudokutools
+    def check_complete(self):
+        if self.sudoku.empty_coords():
+            return False
+
+        if self.sudoku.find_all_conflicts():
+            return False
+
+        return True
+
     def clear(self):
         for field in self.fields.values():
             if field.state != Locked:
@@ -54,6 +74,9 @@ class SudokuGrid(GridLayout):
     def enter_number(self, number):
         if self.selected_field:
             self.selected_field.input(number)
+
+        if self.check_complete():
+            self.sudoku_complete()
 
     def push_style(self, style, *coords):
         """Pushes a background style to all given coordinates."""
@@ -91,10 +114,16 @@ class SudokuGrid(GridLayout):
         self.sudoku.solve()
         self.sync_sudoku_to_gui()
 
+        if self.check_complete():
+            self.sudoku_complete()
+
     def solve_field(self):
         if self.selected_field:
             self.sudoku.solve_field(self.selected_field.coords)
             self.sync_sudoku_to_gui()
+
+        if self.check_complete():
+            self.sudoku_complete()
 
 class SudokuApp(App):
     Config.set('graphics', 'width', '480')

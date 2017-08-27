@@ -42,8 +42,9 @@
         # Settings button
         Button:
             # size_hint: (0.2, 1)
-            text: "Settings"
-            on_release: app.open_settings()
+            text: "Kivy\nSettings"
+            halign: "center"
+            on_press: app.open_settings()
 
         # Help Dropdown:
         BoxLayout:
@@ -167,3 +168,26 @@
 
 <NumberButton@Button>:
     size_hint: (1.0 / len(self.parent.children), 1)
+
+<WinPopup>:
+    title: "Sudoku complete"
+    id: winpopup
+
+    BoxLayout:
+        orientation: "vertical"
+
+        Label:
+            size_hint_y: 0.8
+            text: "Congratulations, you have won!"
+
+        BoxLayout:
+            size_hint_y: 0.2
+            orientation: "horizontal"
+
+            Button:
+                text: "Back"
+                on_release: winpopup.dismiss()
+
+            Button:
+                text: 'New Sudoku'
+                on_release: winpopup.dismiss(), winpopup.grid.new_sudoku()
