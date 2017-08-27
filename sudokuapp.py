@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # standard imports
-
 from random import choice
 
+# kivy imports
 from kivy.app import App
 from kivy.config import Config
 from kivy.uix.boxlayout import BoxLayout
@@ -12,19 +12,22 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty
 
-from sudokutools.examples import EXAMPLES
-from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
-
-HARD_EXAMPLE = EXAMPLES[1][0]
-
+# local imports
 from sudokulib.numberfield import NumberField
 from sudokulib.fieldstate import Locked
 
+from sudokutools.examples import EXAMPLES
+from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
+
+
 class SudokuWidget(BoxLayout):
-    pass
+    grid = ObjectProperty(None)
+    info_label = ObjectProperty(None)
+
 
 class WinPopup(Popup):
     grid = ObjectProperty(None)
+
 
 class SudokuGrid(GridLayout):
     def __init__(self, **kwargs):
@@ -132,9 +135,17 @@ class SudokuGrid(GridLayout):
         if self.check_complete():
             self.sudoku_complete()
 
+
 class SudokuApp(App):
     def build(self):
-        return SudokuWidget()
+        self.sudoku_widget = SudokuWidget()
+        return self.sudoku_widget
+
+    def on_pause(self):
+        pass
+
+    def on_resume(self):
+        self.sudoku_widget.info_label.text = "Debug: Resumed from on_pause()."
 
 if __name__ == '__main__':
     Config.set('graphics', 'width', '480')

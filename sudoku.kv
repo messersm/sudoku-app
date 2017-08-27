@@ -29,6 +29,8 @@
 
 <SudokuWidget>:
     orientation: "vertical"
+    grid: grid
+    info_label: info_label
 
     BoxLayout:
         orientation: "horizontal"
@@ -164,6 +166,7 @@
 
     Label:
         size_hint: (1, 0.4)
+        id: info_label
         # text: "Hint: double tap a field to edit candidates."
 
 <NumberButton@Button>:
