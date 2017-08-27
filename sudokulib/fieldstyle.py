@@ -14,7 +14,7 @@ class FieldStyle(object):
     def __update_field(self):
         self.colors.sort()
         priority, color = self.colors[0]
-        self.field.bgcolor = color
+        self.field.background_color = color
 
     def push(self, (priority, color)):
         self.colors.append((priority, color))

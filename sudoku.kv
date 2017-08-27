@@ -1,7 +1,15 @@
 <NumberField>:
     canvas.before:
+        # background rect
         Color:
-            rgba: self.bgcolor
+            rgba: self.background_color
+        Rectangle:
+            size: self.width, self.height
+            pos: self.pos
+
+        # highlight rect
+        Color:
+            rgba: self.highlight_color
         Rectangle:
             size: self.width, self.height
             pos: self.pos
@@ -11,7 +19,6 @@
             rgba: self.bottom_border_color
         Line:
             width: self.bottom_border_width
-            # rectangle: (self.x, self.y, self.width, self.height)
             points: self.x, self.y, self.x + self.width, self.y
 
         # left line

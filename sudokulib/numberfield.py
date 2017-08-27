@@ -11,7 +11,8 @@ DEFAULT_FONT_SIZE = "27sp"
 CANDIDATE_FONT_SIZE = "10sp"
 
 class NumberField(Label):
-    bgcolor = ListProperty((1, 1, 1, 1))
+    background_color = ListProperty((1, 1, 1, 1))
+    highlight_color = ListProperty((1, 1, 1, 0))
 
     DEFAULT_BORDER_COLOR = (0.5, 0.5, 0.5, 1)
     THICK_BORDER_COLOR = (0, 0, 0, 1)
