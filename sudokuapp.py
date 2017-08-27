@@ -3,6 +3,7 @@
 
 # standard imports
 from random import choice
+from os.path import join
 
 # kivy imports
 from kivy.app import App
@@ -62,7 +63,8 @@ class SudokuGrid(GridLayout):
                 self.add_widget(label)
                 self.fields[(x, y)] = label
 
-        self.restore_state()
+        filename = join(App.get_running_app().user_data_dir, STATEFILE)
+        self.restore_state(filename=filename)
         if not self.sudoku:
             self.new_sudoku()
 
@@ -192,15 +194,17 @@ class SudokuGrid(GridLayout):
 
     def save_state(self, filename=STATEFILE):
         if self.sudoku:
+            # print("Saving state to %s" % filename)
             store = JsonStore(filename)
             current_str = self.sudoku.to_str(row_sep='', column_sep='')
             orig_str = self.orig.to_str(row_sep='', column_sep='')
             store.put('sudoku', orig=orig_str, current=current_str)
 
-        print('save called')
+        # print('save called')
 
     def restore_state(self, filename=STATEFILE):
         store = JsonStore(filename)
+        # print("Restoring state from %s" % filename)
         if 'sudoku' in store:
             self.orig = SudokuWithCandidates.from_str(store['sudoku']['orig'])
             self.sudoku = self.orig
@@ -208,7 +212,7 @@ class SudokuGrid(GridLayout):
             self.sudoku = SudokuWithCandidates.from_str(store['sudoku']['current'])
             self.sync_sudoku_to_gui()
 
-        print("restore called")
+        # print("restore called")
 
 
 class SudokuApp(App):
@@ -217,10 +221,13 @@ class SudokuApp(App):
         return self.sudoku_widget
 
     def on_pause(self):
-        self.sudoku_widget.save_state(filename=STATEFILE)
+        filename = join(self.user_data_dir, STATEFILE)
+        self.sudoku_widget.save_state(filename=filename)
+        return True
 
     def on_stop(self):
-        self.sudoku_widget.save_state(filename=STATEFILE)
+        filename = join(self.user_data_dir, STATEFILE)
+        self.sudoku_widget.save_state(filename=filename)
 
     def on_resume(self):
         self.sudoku_widget.info_label.text = "Debug: Resumed from on_pause()."
