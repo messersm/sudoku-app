@@ -224,8 +224,10 @@ class Sudoku(object):
 
         return [num for num in VALID_NUMBERS if num not in others]
 
-    def bruteforce(self, candidates=None):
+    def bruteforce(self, reverse=False):
         """Returns a completly solved Sudoku instance or None
+
+        Use reverse to check, if there are multiple solutions.
 
         >>> sudoku = Sudoku.from_str(EXAMPLES[1][0])
         >>> solved = sudoku.bruteforce()
@@ -241,13 +243,16 @@ class Sudoku(object):
         if not empty:
             return self
 
-        # sort empty fields by candidate length and begin with the shortest (for performance)
+        # sort empty fields by candidate length
+        # and begin with the shortest (for performance) - unless reverse is True
         empty_and_candidates = [(coord, self.candidates(coord)) for coord in empty]
         empty_and_candidates.sort(key=lambda (coord, candidates): len(candidates))
         next_coord, next_candidates = empty_and_candidates[0]
 
         # apply changes to a new sudoku
         sudoku = self.copy()
+        if reverse:
+            next_candidates = reversed(next_candidates)
         for candidate in next_candidates:
             sudoku[next_coord] = candidate
             solved_sudoku = sudoku.bruteforce()
@@ -259,10 +264,10 @@ class Sudoku(object):
         # the sudoku is not solveable.
         return None
 
-    def bruteforce_steps(self):
+    def bruteforce_steps(self, reverse=False):
         steps = []
         
-        solved = self.bruteforce()
+        solved = self.bruteforce(reverse=reverse)
         if solved is None:
             return steps
         
@@ -294,7 +299,7 @@ class Sudoku(object):
                 self[x, y] = oldval
                 return
 
-    def iter_steps(self):
+    def iter_steps(self, reverse=False):
         """iterate through all possible solve steps ((x, y), value, type).
         """
 
@@ -316,7 +321,7 @@ class Sudoku(object):
             sud = self.copy()
             sud.apply_steps(steps)
 
-            for step in sud.bruteforce_steps():
+            for step in sud.bruteforce_steps(reverse=reverse):
                 yield step
 
     def step(self):
@@ -324,7 +329,7 @@ class Sudoku(object):
             self[x, y] = value
             return ((x, y), value, step_type)
 
-    def solve(self):
+    def solve(self, reverse=False):
         """Solve the Sudoku filling all (possible) fields.
 
         >>> solve_works = True
@@ -339,7 +344,42 @@ class Sudoku(object):
         if self.find_all_conflicts():
             return
         else:
-            self.apply_steps(self.iter_steps())
+            self.apply_steps(self.iter_steps(reverse=reverse))
+
+    def is_unique(self):
+        """"Check if this sudoku is unique
+
+        Returns:    None - not solveable
+                    True - is unique
+                    False - is not unique
+
+        # Example 2 taken from wikipedia
+        >>> sud1 = Sudoku.from_str("1234567891")
+        >>> sud2 = Sudoku.from_str( \
+            "030000000" + \
+            "000195000" + \
+            "008000060" + \
+            "800060000" + \
+            "400800001" + \
+            "000020000" + \
+            "060000280" + \
+            "000419005" + \
+            "000000070")
+        >>> sud3 = Sudoku.from_str("123456789")
+        >>> str(sud1.is_unique())
+        'None'
+        >>> sud2.is_unique()
+        True
+        >>> sud3.is_unique()
+        False
+        """
+        sud1 = self.copy()
+        sud1.solve()
+        if sud1.empty_coords():
+            return None
+        sud2 = self.copy()
+        sud2.solve(reverse=True)
+        return str(sud1) == str(sud2)
 
     def solve_field(self, (x, y)):
         sudoku = self.copy()
