@@ -1,5 +1,8 @@
 
+from kivy.uix.gridlayout import  GridLayout
 from kivy.uix.label import Label
+from kivy.uix.button import Button
+
 from kivy.properties import ListProperty, NumericProperty
 
 from fieldstate import Unselected, InputNumber
@@ -10,9 +13,39 @@ from sudokutools.sudoku import VALID_NUMBERS
 DEFAULT_FONT_SIZE = "27sp"
 CANDIDATE_FONT_SIZE = "10sp"
 
+BACKGROUND_COLORS = {
+    "locked": (0.8, 0.8, 0.8, 1),
+    "default": (1, 1, 1, 1)
+}
+
+HIGHLIGHT_COLORS = {
+    "selected": (0.5, 0.5, 1, 1),
+    "invalid": (1, 0, 0, 1),
+    "influenced": (0.7, 0.7, 1, 1),
+    "default": (1, 1, 1, 0)
+}
+
+
+class NumberChooser(GridLayout):
+    number_font_size = DEFAULT_FONT_SIZE
+    candidate_font_size = CANDIDATE_FONT_SIZE
+
+    def __init__(self, field, **kwargs):
+        self.field = field
+        super(NumberChooser, self).__init__(**kwargs)
+
+
 class NumberField(Label):
-    background_color = ListProperty((1, 1, 1, 1))
-    highlight_color = ListProperty((1, 1, 1, 0))
+    """Represents on visible field in the sudoku grid.
+
+    select(True / False)
+    lock(True / False)
+    input(number)
+
+    """
+
+    background_color = ListProperty(BACKGROUND_COLORS["default"])
+    highlight_color = ListProperty(HIGHLIGHT_COLORS["default"])
 
     DEFAULT_BORDER_COLOR = (0.5, 0.5, 0.5, 1)
     THICK_BORDER_COLOR = (0, 0, 0, 1)
@@ -24,7 +57,7 @@ class NumberField(Label):
     left_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
     bottom_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
 
-    def __init__(self, coords=(-1, -1), locked=False, **kwargs):
+    def __init__(self, coords=(-1, -1), **kwargs):
         super(NumberField, self).__init__(**kwargs)
         self.coords = coords
 
@@ -45,6 +78,9 @@ class NumberField(Label):
     @property
     def sudoku(self):
         return self.parent.sudoku
+
+    def __set_highlight(self, name):
+        self.highlight_color = HIGHLIGHT_COLORS[name]
 
     def show_candidates(self):
         self.font_size = CANDIDATE_FONT_SIZE
@@ -104,6 +140,9 @@ class NumberField(Label):
         self.state.on_input(self, inp)
 
     def on_touch_down(self, touch):
+        # chooser = NumberChooser(self)
+        # self.add_widget(chooser)
+        # return
         self.state.on_touch_down(self, touch)
 
     def set_state(self, state):

@@ -243,3 +243,51 @@
             size_hint_y: 0.2
             text: "Back."
             on_release: root.dismiss()
+
+<NumberChooser>:
+    rows: 3
+    cols: 4
+
+    NumberChooserButton:
+        text: "1"
+
+    NumberChooserButton:
+        text: "2"
+
+    NumberChooserButton:
+        text: "3"
+
+    NumberChooserButton:
+        text: "4"
+
+    NumberChooserButton:
+        text: "5"
+
+    NumberChooserButton:
+        text: "6"
+
+    NumberChooserButton:
+        text: "7"
+
+    NumberChooserButton:
+        text: "8"
+
+    NumberChooserButton:
+        text: "9"
+
+    NumberChooserButton:
+        text: ""
+        on_release: self.parent.callback(None)
+
+    NumberChooserButton:
+        text: "1 2 3\n4 5 6\n7 8 9"
+        font_size: self.parent.candidate_font_size
+        on_release: self.parent.callback([1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+<NumberChooserButton@Button>:
+    size_hint: None, None
+    size: self.parent.field.size
+    font_size: self.parent.number_font_size
+    background_normal: ''
+    background_color: (0, 0, 1, 1)
+    on_release: self.parent.callback(int(self.text))
