@@ -2,26 +2,21 @@
 # -*- coding: utf-8 -*-
 
 # standard imports
-from functools import wraps
-from collections import namedtuple
 
 from random import choice
 
 from kivy.app import App
 from kivy.config import Config
-from kivy.properties import NumericProperty, ObjectProperty, ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.label import Label
-from kivy.uix.widget import Widget
 
-from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
 from sudokutools.examples import EXAMPLES
+from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
 
 HARD_EXAMPLE = EXAMPLES[1][0]
 
-from numberfield import NumberField
-from fieldstate import Locked
+from sudokuapp.numberfield import NumberField
+from sudokuapp.fieldstate import Locked
 
 class SudokuWidget(BoxLayout):
     pass
