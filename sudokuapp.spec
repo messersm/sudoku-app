@@ -6,9 +6,9 @@ block_cipher = None
 
 
 a = Analysis(['sudokuapp.py'],
-             pathex=['C:\\Users\\Maik\\PycharmProjects\\sudoku-app'],
+             pathex=['.'],
              binaries=[],
-             datas=[],
+             datas=[ ('sudoku.kv', '.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -21,18 +21,16 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='main',
+          name='sudokuapp',
           debug=False,
           strip=False,
           upx=True,
           console=True )
 coll = COLLECT(exe,
-               Tree('sudokutools'),
-               Tree('sudokuapp'),
                a.binaries,
                a.zipfiles,
                a.datas,
                *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
                strip=False,
                upx=True,
-               name='main')
+               name='sudokuapp')

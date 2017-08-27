@@ -15,8 +15,8 @@ from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
 
 HARD_EXAMPLE = EXAMPLES[1][0]
 
-from sudokuapp.numberfield import NumberField
-from sudokuapp.fieldstate import Locked
+from sudokulib.numberfield import NumberField
+from sudokulib.fieldstate import Locked
 
 class SudokuWidget(BoxLayout):
     pass
