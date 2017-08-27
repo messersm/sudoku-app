@@ -11,6 +11,9 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty
+from kivy.storage.jsonstore import JsonStore
+
+STATEFILE = "state.json"
 
 # local imports
 from sudokulib.numberfield import NumberField
@@ -25,6 +28,8 @@ class SudokuWidget(BoxLayout):
     menu = ObjectProperty(None)
     info_label = ObjectProperty(None)
 
+    def save_state(self, filename=STATEFILE):
+        self.grid.save_state(filename=filename)
 
 class WinPopup(Popup):
     grid = ObjectProperty(None)
@@ -44,6 +49,7 @@ class SudokuGrid(GridLayout):
 
         self.sudoku_won = False
         self.sudoku = None
+        self.orig = None
         self.fields = {}
         self.selected_field = None
 
@@ -56,7 +62,9 @@ class SudokuGrid(GridLayout):
                 self.add_widget(label)
                 self.fields[(x, y)] = label
 
-        self.new_sudoku()
+        self.restore_state()
+        if not self.sudoku:
+            self.new_sudoku()
 
     def edit_custom_sudoku(self):
         if self.__in_edit_custom:
@@ -90,6 +98,7 @@ class SudokuGrid(GridLayout):
     def end_edit_custom_sudoku(self):
         self.__in_edit_custom = False
         self.lock_filled_fields(True)
+        self.orig = self.sudoku.copy()
 
     def sudoku_complete(self):
         if self.sudoku_won:
@@ -120,8 +129,10 @@ class SudokuGrid(GridLayout):
 
         if self.sudoku:
             self.lock_filled_fields(False)
+
         example = choice(EXAMPLES)[0]
         self.sudoku = SudokuWithCandidates.from_str(example)
+        self.orig = self.sudoku.copy()
         self.lock_filled_fields()
         self.sync_sudoku_to_gui()
 
@@ -179,6 +190,26 @@ class SudokuGrid(GridLayout):
         if self.check_complete():
             self.sudoku_complete()
 
+    def save_state(self, filename=STATEFILE):
+        if self.sudoku:
+            store = JsonStore(filename)
+            current_str = self.sudoku.to_str(row_sep='', column_sep='')
+            orig_str = self.orig.to_str(row_sep='', column_sep='')
+            store.put('sudoku', orig=orig_str, current=current_str)
+
+        print('save called')
+
+    def restore_state(self, filename=STATEFILE):
+        store = JsonStore(filename)
+        if 'sudoku' in store:
+            self.orig = SudokuWithCandidates.from_str(store['sudoku']['orig'])
+            self.sudoku = self.orig
+            self.lock_filled_fields()
+            self.sudoku = SudokuWithCandidates.from_str(store['sudoku']['current'])
+            self.sync_sudoku_to_gui()
+
+        print("restore called")
+
 
 class SudokuApp(App):
     def build(self):
@@ -186,7 +217,10 @@ class SudokuApp(App):
         return self.sudoku_widget
 
     def on_pause(self):
-        pass
+        self.sudoku_widget.save_state(filename=STATEFILE)
+
+    def on_stop(self):
+        self.sudoku_widget.save_state(filename=STATEFILE)
 
     def on_resume(self):
         self.sudoku_widget.info_label.text = "Debug: Resumed from on_pause()."
@@ -195,4 +229,11 @@ if __name__ == '__main__':
     Config.set('graphics', 'width', '480')
     Config.set('graphics', 'height', '800')
 
-    SudokuApp().run()
+    app = SudokuApp()
+
+    try:
+        app.run()
+    except:
+        # try to save some state, if possible.
+        app.on_stop()
+        raise
