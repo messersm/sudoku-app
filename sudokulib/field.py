@@ -148,12 +148,12 @@ class Field(Label):
             if not self.__selected:
                 self.parent.selected_field = self
                 self.add_highlight("selected")
-                for coord in surrounding_coords(self.coords):
+                for coord in surrounding_coords(self.coords, include=False):
                     self.parent.fields[coord].add_highlight("influenced")
         else:
             if self.__selected:
                 self.remove_highlight("selected")
-                for coord in surrounding_coords(self.coords):
+                for coord in surrounding_coords(self.coords, include=False):
                     self.parent.fields[coord].remove_highlight("influenced")
 
         self.__selected = selected
