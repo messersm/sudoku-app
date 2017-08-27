@@ -14,14 +14,12 @@ from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty
 from kivy.storage.jsonstore import JsonStore
 
-STATEFILE = "state.json"
-
 # local imports
-from sudokulib.numberfield import NumberField
-from sudokulib.fieldstate import Locked
-
+from sudokulib.field import Field
 from sudokutools.examples import EXAMPLES
 from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
+
+STATEFILE = "state.json"
 
 
 class SudokuWidget(BoxLayout):
@@ -31,6 +29,7 @@ class SudokuWidget(BoxLayout):
 
     def save_state(self, filename=STATEFILE):
         self.grid.save_state(filename=filename)
+
 
 class WinPopup(Popup):
     grid = ObjectProperty(None)
@@ -59,9 +58,9 @@ class SudokuGrid(GridLayout):
         # mind the order here - it's important
         for y in range(9):
             for x in range(9):
-                label = NumberField(coords=(x, y))
-                self.add_widget(label)
-                self.fields[(x, y)] = label
+                field = Field(coords=(x, y))
+                self.add_widget(field)
+                self.fields[(x, y)] = field
 
         filename = join(App.get_running_app().user_data_dir, STATEFILE)
         self.restore_state(filename=filename)
@@ -123,7 +122,7 @@ class SudokuGrid(GridLayout):
 
     def clear(self):
         for field in self.fields.values():
-            if field.state != Locked:
+            if not field.locked:
                 field.content = None
 
     def new_sudoku(self):
@@ -144,16 +143,6 @@ class SudokuGrid(GridLayout):
 
         if self.check_complete():
             self.sudoku_complete()
-
-    def push_style(self, style, *coords):
-        """Pushes a background style to all given coordinates."""
-
-        for coord in coords:
-            self.fields[coords].push(style)
-
-    def pop_style(self, style, *coords):
-        for coord in coords:
-            self.fields[coords].pop(style)
 
     def lock_filled_fields(self, locked=True):
         for x in range(9):
@@ -194,25 +183,19 @@ class SudokuGrid(GridLayout):
 
     def save_state(self, filename=STATEFILE):
         if self.sudoku:
-            # print("Saving state to %s" % filename)
             store = JsonStore(filename)
             current_str = self.sudoku.to_str(row_sep='', column_sep='')
             orig_str = self.orig.to_str(row_sep='', column_sep='')
             store.put('sudoku', orig=orig_str, current=current_str)
 
-        # print('save called')
-
     def restore_state(self, filename=STATEFILE):
         store = JsonStore(filename)
-        # print("Restoring state from %s" % filename)
         if 'sudoku' in store:
             self.orig = SudokuWithCandidates.from_str(store['sudoku']['orig'])
             self.sudoku = self.orig
             self.lock_filled_fields()
             self.sudoku = SudokuWithCandidates.from_str(store['sudoku']['current'])
             self.sync_sudoku_to_gui()
-
-        # print("restore called")
 
 
 class SudokuApp(App):
