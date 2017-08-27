@@ -91,7 +91,7 @@
         # Menu DropDown
         BoxLayout:
             size_hint: (0.2, 1)
-        
+
             Button:
                 id: menu_button
                 # size_hint: (0.2, 1)
@@ -105,16 +105,22 @@
                 on_parent: self.dismiss()
 
                 Button:
+                    text: "Clear"
+                    size_hint_y: None
+                    height: menu_button.height
+                    on_release: grid.clear(), menu_dropdown.select(self)
+
+                Button:
                     text: "New"
                     size_hint_y: None
                     height: menu_button.height
                     on_release: grid.new_sudoku(), menu_dropdown.select(self)
 
                 Button:
-                    text: "Clear"
+                    text: "Custom"
                     size_hint_y: None
                     height: menu_button.height
-                    on_release: grid.clear(), menu_dropdown.select(self)
+                    on_release: grid.edit_custom_sudoku(), menu_dropdown.select(self)
 
     SudokuGrid:
         id: grid
@@ -174,7 +180,6 @@
 
 <WinPopup>:
     title: "Sudoku complete"
-    id: winpopup
 
     BoxLayout:
         orientation: "vertical"
@@ -189,8 +194,45 @@
 
             Button:
                 text: "Back"
-                on_release: winpopup.dismiss()
+                on_release: root.dismiss()
 
             Button:
                 text: 'New Sudoku'
-                on_release: winpopup.dismiss(), winpopup.grid.new_sudoku()
+                on_release: root.dismiss(), root.grid.new_sudoku()
+
+<CustomWarningPopup>:
+    title: "Warning: Sudoku is not unique"
+
+    BoxLayout:
+        orientation: "vertical"
+
+        Label:
+            size_hint_y: 0.8
+            text: "Your Sudoku has multiple solutions."
+
+        BoxLayout:
+            size_hint_y: 0.2
+            orientation: "horizontal"
+
+            Button:
+                text: "Back"
+                on_release: root.dismiss()
+
+            Button:
+                text: 'Play anyway!'
+                on_release: root.dismiss(), root.grid.end_edit_custom_sudoku()
+
+<CustomErrorPopup>:
+    title: "Error: Sudoku is not valid."
+
+    BoxLayout:
+        orientation: "vertical"
+
+        Label:
+            size_hint_y: 0.8
+            text: "Your Sudoku has no solution."
+
+        Button:
+            size_hint_y: 0.2
+            text: "Back."
+            on_release: root.dismiss()

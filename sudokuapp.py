@@ -22,10 +22,19 @@ from sudokutools.sudoku import SudokuWithCandidates, VALID_NUMBERS
 
 class SudokuWidget(BoxLayout):
     grid = ObjectProperty(None)
+    menu = ObjectProperty(None)
     info_label = ObjectProperty(None)
 
 
 class WinPopup(Popup):
+    grid = ObjectProperty(None)
+
+
+class CustomErrorPopup(Popup):
+    grid = ObjectProperty(None)
+
+
+class CustomWarningPopup(Popup):
     grid = ObjectProperty(None)
 
 
@@ -38,6 +47,8 @@ class SudokuGrid(GridLayout):
         self.fields = {}
         self.selected_field = None
 
+        self.__in_edit_custom = False
+
         # mind the order here - it's important
         for y in range(9):
             for x in range(9):
@@ -46,6 +57,39 @@ class SudokuGrid(GridLayout):
                 self.fields[(x, y)] = label
 
         self.new_sudoku()
+
+    def edit_custom_sudoku(self):
+        if self.__in_edit_custom:
+            self.check_edit_custom_sudoku()
+        else:
+            self.begin_edit_custom_sudoku()
+
+    def begin_edit_custom_sudoku(self):
+        self.__in_edit_custom = True
+
+        if self.sudoku:
+            self.lock_filled_fields(False)
+
+        self.sudoku = SudokuWithCandidates()
+        self.sync_sudoku_to_gui()
+
+    def check_edit_custom_sudoku(self):
+        ret = self.sudoku.is_unique()
+
+        if ret is None:
+            error = CustomErrorPopup()
+            error.grid = self
+            error.open()
+        elif ret is False:
+            warning = CustomWarningPopup()
+            warning.grid = self
+            warning.open()
+        elif ret is True:
+            self.end_edit_custom_sudoku()
+
+    def end_edit_custom_sudoku(self):
+        self.__in_edit_custom = False
+        self.lock_filled_fields(True)
 
     def sudoku_complete(self):
         if self.sudoku_won:
