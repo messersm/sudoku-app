@@ -30,6 +30,7 @@ class SudokuGrid(GridLayout):
     def __init__(self, **kwargs):
         super(SudokuGrid, self).__init__(rows=9, cols=9)
 
+        self.sudoku_won = False
         self.sudoku = None
         self.fields = {}
         self.selected_field = None
@@ -44,6 +45,10 @@ class SudokuGrid(GridLayout):
         self.new_sudoku()
 
     def sudoku_complete(self):
+        if self.sudoku_won:
+            return
+
+        self.sudoku_won = True
         winpopup = WinPopup()
         winpopup.grid = self
         winpopup.open()
@@ -64,6 +69,8 @@ class SudokuGrid(GridLayout):
                 field.content = None
 
     def new_sudoku(self):
+        self.sudoku_won = False
+
         if self.sudoku:
             self.lock_filled_fields(False)
         example = choice(EXAMPLES)[0]
