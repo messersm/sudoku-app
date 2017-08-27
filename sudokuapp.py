@@ -218,29 +218,18 @@ class SudokuGrid(GridLayout):
 class SudokuApp(App):
     def build(self):
         self.sudoku_widget = SudokuWidget()
+        self.statefilename = join(self.user_data_dir, STATEFILE)
         return self.sudoku_widget
 
     def on_pause(self):
-        filename = join(self.user_data_dir, STATEFILE)
-        self.sudoku_widget.save_state(filename=filename)
+        self.sudoku_widget.save_state(self.statefilename)
         return True
 
     def on_stop(self):
-        filename = join(self.user_data_dir, STATEFILE)
-        self.sudoku_widget.save_state(filename=filename)
-
-    def on_resume(self):
-        self.sudoku_widget.info_label.text = "Debug: Resumed from on_pause()."
+        self.sudoku_widget.save_state(self.statefilename)
 
 if __name__ == '__main__':
     Config.set('graphics', 'width', '480')
     Config.set('graphics', 'height', '800')
 
-    app = SudokuApp()
-
-    try:
-        app.run()
-    except:
-        # try to save some state, if possible.
-        app.on_stop()
-        raise
+    SudokuApp().run()
