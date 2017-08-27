@@ -133,11 +133,11 @@ class SudokuGrid(GridLayout):
             self.sudoku_complete()
 
 class SudokuApp(App):
-    Config.set('graphics', 'width', '480')
-    Config.set('graphics', 'height', '800')
-    
     def build(self):
         return SudokuWidget()
 
 if __name__ == '__main__':
+    Config.set('graphics', 'width', '480')
+    Config.set('graphics', 'height', '800')
+
     SudokuApp().run()
