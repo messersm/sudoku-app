@@ -156,6 +156,13 @@ class Field(Label):
                 for coord in surrounding_coords(self.coords, include=False):
                     self.parent.fields[coord].remove_highlight("influenced")
 
+                if self.parent.sudoku.find_conflicts(self.coords):
+                    self.add_highlight("invalid")
+                else:
+                    # Yep, that's ugly.
+                    while HIGHLIGHT_COLORS["invalid"] in self.__highlights:
+                        self.remove_highlight("invalid")
+
         self.__selected = selected
 
     def input(self, inp):
