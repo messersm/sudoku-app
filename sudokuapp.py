@@ -11,11 +11,10 @@ from kivy.config import Config
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ObjectProperty
 
-# local imports
+# needed by sudoku.kv
 from sudokulib.grid import SudokuGrid
 
 STATEFILE = "state.json"
-
 
 class SudokuWidget(BoxLayout):
     grid = ObjectProperty(None)
@@ -25,6 +24,8 @@ class SudokuWidget(BoxLayout):
     def save_state(self, filename=STATEFILE):
         self.grid.save_state(filename=filename)
 
+    def handle_button_input(self, btn, text):
+        pass
 
 class SudokuApp(App):
     def build(self):
