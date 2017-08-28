@@ -232,7 +232,7 @@ def solve(sudoku, *args, **kwargs):
     >>> for example, solution in EXAMPLES:
     ...     sudoku = Sudoku.from_str(example)
     ...     solved = solve(sudoku)
-    ...     solve_works &= (str(sudoku) == solution.strip())
+    ...     solve_works &= (str(solved) == solution.strip())
     >>> solve_works
     True
     """
