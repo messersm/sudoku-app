@@ -90,13 +90,11 @@
                     height: help_button.height
                     on_release: grid.solve(), help_dropdown.select(self)
 
-        # Menu DropDown
         BoxLayout:
-            size_hint: (0.2, 1)
+            size_hint_x: 0.2
 
             Button:
                 id: menu_button
-                # size_hint: (0.2, 1)
                 text: "Menu"
                 on_release: menu_dropdown.open(self)
                 size_hint_y: None
@@ -137,33 +135,9 @@
         # step: 1
         # size_hint: (1, 0.2)
 
-    BoxLayout:
-        orientation: "horizontal"
-        size_hint: (1, 0.2)
+    NumberInput:
+        size_hint_y: 0.2
         grid: grid
-
-        NumberButton:
-            text: "1"
-        NumberButton:
-            text: "2"
-        NumberButton:
-            text: "3"
-        NumberButton:
-            text: "4"
-        NumberButton:
-            text: "5"
-        NumberButton:
-            text: "6"
-        NumberButton:
-            text: "7"
-        NumberButton:
-            text: "8"
-        NumberButton:
-            text: "9"
-        Button:
-            text: " "
-            size_hint: (1.0 / len(self.parent.children), 1)
-            on_release: self.parent.grid.enter_number(0)
 
     Label:
         size_hint: (1, 0.4)
@@ -173,3 +147,30 @@
 <NumberButton@Button>:
     size_hint: (1.0 / len(self.parent.children), 1)
     on_release: self.parent.grid.enter_number(int(self.text))
+
+<NumberInput@BoxLayout>:
+    orientation: "horizontal"
+    size_hint: (1, 0.2)
+
+    NumberButton:
+        text: "1"
+    NumberButton:
+        text: "2"
+    NumberButton:
+        text: "3"
+    NumberButton:
+        text: "4"
+    NumberButton:
+        text: "5"
+    NumberButton:
+        text: "6"
+    NumberButton:
+        text: "7"
+    NumberButton:
+        text: "8"
+    NumberButton:
+        text: "9"
+    Button:
+        text: " "
+        size_hint_x: 1.0 / len(self.parent.children)
+        on_release: self.parent.grid.enter_number(0)

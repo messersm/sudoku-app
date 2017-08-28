@@ -31,13 +31,6 @@ class SudokuWidget(BoxLayout):
     def save_state(self, filename=STATEFILE):
         self.grid.save_state(filename=filename)
 
-class CustomErrorPopup(Popup):
-    grid = ObjectProperty(None)
-
-
-class CustomWarningPopup(Popup):
-    grid = ObjectProperty(None)
-
 
 class SudokuGrid(GridLayout):
     def __init__(self, **kwargs):
