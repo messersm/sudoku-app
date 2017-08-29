@@ -189,7 +189,7 @@ class Field(Label):
             return
 
         if self.collide_point(*touch.pos):
-            if self.selected:
+            if self.selected and touch.is_double_tap:
                 if isinstance(self.content, list) and len(self.content) == 1:
                     self.content = self.content[0]
                     self.select(False)
