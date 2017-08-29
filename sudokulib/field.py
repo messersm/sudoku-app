@@ -111,7 +111,7 @@ class Field(Label):
         self.__content = value
         sudoku = self.parent.sudoku
 
-        if value is None:
+        if value is None or value == 0:
             sudoku[self.coords] = 0
             sudoku.set_candidates(self.coords, None)
             self.__show_number()
@@ -178,15 +178,10 @@ class Field(Label):
                 else:
                     candidates.append(inp)
 
-                if len(candidates) == 1:
-                    self.content = candidates[0]
-                    self.select(False)
-                else:
-                    self.content = candidates
+                self.content = candidates
             # number input mode
             else:
-                self.content = inp
-                self.select(False)
+                self.content = [inp]
 
     def on_touch_down(self, touch):
         # do nothing, when locked
@@ -194,10 +189,13 @@ class Field(Label):
             return
 
         if self.collide_point(*touch.pos):
-            self.select(True)
+            if self.selected:
+                if isinstance(self.content, list) and len(self.content) == 1:
+                    self.content = self.content[0]
+                    self.select(False)
+            else:
+                self.select(True)
 
-            if touch.is_double_tap:
-                self.content = list(VALID_NUMBERS)
         # only unselect, if the grid is touched.
         elif self.parent.collide_point(*touch.pos):
             self.select(False)
