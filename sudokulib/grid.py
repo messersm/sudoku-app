@@ -11,9 +11,10 @@ from kivy.storage.jsonstore import JsonStore
 from sudokulib.field import Field
 from sudokulib.popup import CallbackPopup
 
-from sudokutools.sudoku import VALID_NUMBERS, SudokuWithCandidates
+from sudokutools.analyzer import SudokuAnalyzer
+from sudokutools.solve import CalculateCandidates, solve
+from sudokutools.sudoku import VALID_NUMBERS, Sudoku
 from sudokutools.examples import EXAMPLES
-
 
 STATEFILE = "state.json"
 
@@ -25,6 +26,7 @@ class SudokuGrid(GridLayout):
         self.sudoku_won = False
         self.sudoku = None
         self.orig = None
+        self.solution = None
         self.fields = {}
         self.selected_field = None
 
@@ -54,11 +56,11 @@ class SudokuGrid(GridLayout):
         if self.sudoku:
             self.lock_filled_fields(False)
 
-        self.sudoku = SudokuWithCandidates()
+        self.sudoku = Sudoku()
         self.sync_sudoku_to_gui()
 
     def check_edit_custom_sudoku(self):
-        ret = self.sudoku.is_unique()
+        ret = SudokuAnalyzer.is_unique(self.sudoku)
 
         if ret is None:
             error = CallbackPopup(
@@ -97,10 +99,10 @@ class SudokuGrid(GridLayout):
 
     # TODO: Move this code to sudokutools
     def check_complete(self):
-        if self.sudoku.empty_coords():
+        if self.sudoku.empty:
             return False
 
-        if self.sudoku.find_all_conflicts():
+        if SudokuAnalyzer.find_all_conflicts(self.sudoku):
             return False
 
         return True
@@ -117,8 +119,9 @@ class SudokuGrid(GridLayout):
             self.lock_filled_fields(False)
 
         example = choice(EXAMPLES)[0]
-        self.sudoku = SudokuWithCandidates.from_str(example)
+        self.sudoku = Sudoku.from_str(example)
         self.orig = self.sudoku.copy()
+        self.solution = solve(self.sudoku, inplace=False)
         self.lock_filled_fields()
         self.sync_sudoku_to_gui()
 
@@ -140,7 +143,7 @@ class SudokuGrid(GridLayout):
             for y in range(9):
                 item = self.sudoku[x, y]
                 if not item:
-                    candidates = self.sudoku.get_candidates((x, y))
+                    candidates = self.sudoku.candidates.get((x, y), None)
                     self.fields[(x, y)].content = candidates
                 elif item in VALID_NUMBERS or item is None:
                     self.fields[(x, y)].content = item
@@ -148,11 +151,11 @@ class SudokuGrid(GridLayout):
     def auto_candidates(self):
         if self.selected_field:
             field = self.selected_field
-            candidates = self.sudoku.candidates(field.coords)
+            candidates = CalculateCandidates.call(self.sudoku, field.coords)
             field.content = candidates
 
     def solve(self):
-        self.sudoku.solve()
+        self.sudoku = self.solution
         self.sync_sudoku_to_gui()
 
         if self.check_complete():
@@ -160,7 +163,8 @@ class SudokuGrid(GridLayout):
 
     def solve_field(self):
         if self.selected_field:
-            self.sudoku.solve_field(self.selected_field.coords)
+            coords = self.selected_field.coords
+            self.sudoku[coords] = self.solution[coords]
             self.sync_sudoku_to_gui()
 
         if self.check_complete():
@@ -176,8 +180,9 @@ class SudokuGrid(GridLayout):
     def restore_state(self, filename=STATEFILE):
         store = JsonStore(filename)
         if 'sudoku' in store:
-            self.orig = SudokuWithCandidates.from_str(store['sudoku']['orig'])
+            self.orig = Sudoku.from_str(store['sudoku']['orig'])
             self.sudoku = self.orig
             self.lock_filled_fields()
-            self.sudoku = SudokuWithCandidates.from_str(store['sudoku']['current'])
+            self.sudoku = Sudoku.from_str(store['sudoku']['current'])
+            self.solution = solve(self.sudoku, inplace=False)
             self.sync_sudoku_to_gui()

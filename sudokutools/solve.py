@@ -79,12 +79,18 @@ class CalculateCandidates(SolveMethod):
     def call(cls, sudoku, (x, y)):
         """
 
-        Example:
-        >>> from sudokutools.sudoku2 import Sudoku
-        >>> sud = Sudoku.from_str("123456709")
-        >>> CalculateCandidates.call(sud, (7, 0))
+        Examples:
+        >>> from sudokutools.sudoku import Sudoku
+        >>> sudoku = Sudoku.from_str("123456709")
+        >>> CalculateCandidates.call(sudoku, (7, 0))
         [8]
+        >>> CalculateCandidates.call(sudoku, (0, 0))
+        [1]
         """
+
+        if sudoku[(x, y)]:
+            return [sudoku[(x, y)]]
+
         candidates = list(VALID_NUMBERS)
 
         for (i, j) in surrounding_coords((x, y), include=False):
@@ -124,37 +130,68 @@ class Bruteforce(SolveMethod):
 
     @classmethod
     def call(cls, sudoku, reverse=False):
-        if not sudoku.empty:
-            return sudoku
+        """Solve sudoku _inplace_ returning success status
 
-        # apply changes to a new sudoku
-        new_sudoku = sudoku.copy()
-        CalculateCandidates.apply(new_sudoku)
+        Example:
+        >>> from sudokutools.sudoku import Sudoku
+        >>> from sudokutools.solve import Bruteforce
+        >>> sudoku = Sudoku.from_str( \
+            "009003008" + \
+            "010040020" + \
+            "200700400" + \
+            "800600700" + \
+            "090070010" + \
+            "003004002" + \
+            "005001007" + \
+            "030090050" + \
+            "700400200")
+        >>> solution = Bruteforce.call(sudoku)
+        >>> print(solution)
+        469523178
+        317948526
+        258716439
+        821659743
+        694372815
+        573184962
+        945261387
+        132897654
+        786435291
+        """
+
+        empty = sudoku.empty
+        if not empty:
+            return True
+
+        # (Re)calculate candidates
+        CalculateCandidates.apply(sudoku)
 
         sorted_empty = sorted(
-            sudoku.empty,
-            key=lambda (x, y): len(new_sudoku.candidates[(x, y)]))
+            empty,
+            key=lambda (x, y): len(sudoku.candidates[(x, y)]))
 
         next_coord = sorted_empty[0]
-        next_candidates = new_sudoku.candidates[next_coord]
+        next_candidates = sudoku.candidates[next_coord]
 
         if reverse:
             next_candidates = reversed(next_candidates)
         for candidate in next_candidates:
-            new_sudoku[next_coord] = candidate
+            sudoku[next_coord] = candidate
 
-            solved_sudoku = cls.call(new_sudoku, reverse=reverse)
-            if solved_sudoku:
-                return solved_sudoku
-            # else continue
+            if cls.call(sudoku, reverse=reverse):
+                return sudoku
+            # else: continue with next candidate
 
         # If we do reach this point, no candidate was valid, thus
         # the sudoku is not solveable.
-        return None
+        # Revert changes (we work _inplace_)
+        sudoku[next_coord] = 0
+        return False
 
     @classmethod
     def search(cls, sudoku):
-        new_sudoku = cls.call(sudoku)
+        new_sudoku = sudoku.copy()
+        if not cls.call(sudoku):
+            raise StopIteration
         for (x, y) in sudoku.empty:
             if new_sudoku[(x, y)]:
                 yield NumberResult(cls, sudoku, (x, y), new_sudoku[(x, y)])
@@ -183,6 +220,16 @@ class SudokuSolver(object):
 
         self.methods.sort(key=lambda m: m.priority)
 
+    def solve_field(self, sudoku, (x, y), inplace=True):
+        if not inplace:
+            sudoku = sudoku.copy()
+
+        for m in self.methods:
+            result = m.search_field(sudoku, (x, y))
+            if result:
+                result.apply()
+                return sudoku
+
     def solve(self, sudoku, inplace=True):
         """Solves the sudoku (in place!)
         """
@@ -209,25 +256,12 @@ class SudokuSolver(object):
     def __str__(self):
         return ''
 
-class SudokuAnalyzer(object):
-    @classmethod
-    def is_unique(cls, sudoku):
-        sud1 = Bruteforce.call(sudoku)
-        if not sud1:
-            return None
-        sud2 = Bruteforce.call(sudoku, reverse=True)
 
-        if sud1 == sud2:
-            return True
-        else:
-            return False
-
-
-def solve(sudoku, *args, **kwargs):
+def solve(sudoku, inplace=True, **kwargs):
     """
     >>> from sudokutools.examples import EXAMPLES
     >>> from sudokutools.solve import solve
-    >>> from sudokutools.sudoku2 import Sudoku
+    >>> from sudokutools.sudoku import Sudoku
     >>> solve_works = True
     >>> for example, solution in EXAMPLES:
     ...     sudoku = Sudoku.from_str(example)
@@ -236,7 +270,7 @@ def solve(sudoku, *args, **kwargs):
     >>> solve_works
     True
     """
-    return SudokuSolver(*args, **kwargs).solve(sudoku)
+    return SudokuSolver(**kwargs).solve(sudoku, inplace=inplace)
 
 
 if __name__ == '__main__':

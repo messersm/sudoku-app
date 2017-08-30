@@ -2,8 +2,10 @@ from kivy.uix.label import Label
 from kivy.properties import ListProperty, NumericProperty
 
 # local imports
-from sudokutools.sudoku import VALID_NUMBERS
+from sudokutools.analyzer import SudokuAnalyzer
 from sudokutools.coord import surrounding_coords
+from sudokutools.sudoku import VALID_NUMBERS
+
 
 DEFAULT_FONT_SIZE = "27sp"
 CANDIDATE_FONT_SIZE = "10sp"
@@ -113,17 +115,17 @@ class Field(Label):
 
         if value is None or value == 0:
             sudoku[self.coords] = 0
-            sudoku.set_candidates(self.coords, None)
+            sudoku.candidates[self.coords] = None
             self.__show_number()
 
         elif isinstance(value, list):
             sudoku[self.coords] = 0
-            sudoku.set_candidates(self.coords, value)
+            sudoku.candidates[self.coords] = value
             self.__show_candidates()
             
         elif isinstance(value, int):
             sudoku[self.coords] = value
-            sudoku.set_candidates(self.coords, None)
+            sudoku.candidates[self.coords] = None
             self.__show_number()
 
     def lock(self, locked=True):
@@ -156,7 +158,7 @@ class Field(Label):
                 for coord in surrounding_coords(self.coords, include=False):
                     self.parent.fields[coord].remove_highlight("influenced")
 
-                if self.parent.sudoku.find_conflicts(self.coords):
+                if SudokuAnalyzer.find_conflicts(self.parent.sudoku, self.coords):
                     self.add_highlight("invalid")
                 else:
                     # Yep, that's ugly.
