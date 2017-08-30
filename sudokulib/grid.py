@@ -12,6 +12,7 @@ from sudokulib.field import Field
 from sudokulib.popup import CallbackPopup
 
 from sudokutools.analyze import SudokuAnalyzer
+from sudokutools.generate import SudokuGenerator
 from sudokutools.solve import CalculateCandidates, solve
 from sudokutools.sudoku import VALID_NUMBERS, Sudoku
 from sudokutools.examples import EXAMPLES
@@ -118,8 +119,9 @@ class SudokuGrid(GridLayout):
         if self.sudoku:
             self.lock_filled_fields(False)
 
-        example = choice(EXAMPLES)[0]
-        self.sudoku = Sudoku.from_str(example)
+        self.sudoku = SudokuGenerator.create()
+        # example = choice(EXAMPLES)[0]
+        # self.sudoku = Sudoku.from_str(example)
         self.orig = self.sudoku.copy()
         self.solution = solve(self.sudoku, inplace=False)
         self.lock_filled_fields()

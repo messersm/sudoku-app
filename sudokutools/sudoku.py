@@ -24,6 +24,30 @@ class Sudoku(object):
     def __getitem__(self, (x, y)):
         return self.numbers[y][x]
 
+    def compare(self, other):
+        """Return a list of differences between self and other.
+
+         Format: list of ((x, y), self[(x, y)], other[(x, y)])
+
+        """
+
+        diff = []
+        for x in ALL_INDICES:
+            for y in ALL_INDICES:
+                if self[(x, y)] != other[(x, y)]:
+                    diff.append(((x, y), self[(x, y)], other[(x, y)]))
+        return diff
+
+    def __eq__(self, other):
+        for x in ALL_INDICES:
+            for y in ALL_INDICES:
+                if self[(x, y)] != other[(x, y)]:
+                    return False
+        return True
+
+    def fully_equal(self, other):
+        return self == other and self.candidates == other.candidates
+
     @property
     def empty(self):
         return [(x, y) for x in ALL_INDICES for y in ALL_INDICES if not self[x, y]]
