@@ -2,7 +2,7 @@ from kivy.uix.label import Label
 from kivy.properties import ListProperty, NumericProperty
 
 # local imports
-from sudokutools.analyzer import SudokuAnalyzer
+from sudokutools.analyze import SudokuAnalyzer
 from sudokutools.coord import surrounding_coords
 from sudokutools.sudoku import VALID_NUMBERS
 

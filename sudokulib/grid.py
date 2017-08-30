@@ -11,7 +11,7 @@ from kivy.storage.jsonstore import JsonStore
 from sudokulib.field import Field
 from sudokulib.popup import CallbackPopup
 
-from sudokutools.analyzer import SudokuAnalyzer
+from sudokutools.analyze import SudokuAnalyzer
 from sudokutools.solve import CalculateCandidates, solve
 from sudokutools.sudoku import VALID_NUMBERS, Sudoku
 from sudokutools.examples import EXAMPLES
