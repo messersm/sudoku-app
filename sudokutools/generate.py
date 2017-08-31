@@ -8,7 +8,7 @@ from random import choice, shuffle
 
 class SudokuGenerator(object):
     @classmethod
-    def create(cls, count=20):
+    def create(cls, count=10):
         while True:
             sudoku = cls.seed(count=count)
             sol1 = sudoku.copy()
@@ -20,11 +20,22 @@ class SudokuGenerator(object):
             Bruteforce.call(sol2, reverse=True)
             if sol1 == sol2:
                 print("Found unique sudoku - returning.")
+                print("len(sudoku) = %d" % len(sudoku))
                 return sudoku
             # sudoku is not unique - try to fix this.
             else:
                 print("Found non-unique sudoku - correcting.")
-                return cls.__fix_non_unique(sudoku, sol1, sol2)
+                sudoku = cls.__fix_non_unique(sudoku, sol1, sol2)
+                print("len(sudoku) = %d" % len(sudoku))
+                return sudoku
+
+    @classmethod
+    def linear_minimize(cls, sudoku):
+        for (x, y) in sudoku.filled():
+            val = sudoku[(x, y)]
+            sudoku[(x, y)] = 0
+            if not SudokuAnalyzer.is_unique(sudoku):
+                sudoku[(x, y)] = val
 
     @classmethod
     def __fix_non_unique(cls, sudoku, sol1, sol2):

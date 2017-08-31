@@ -45,12 +45,19 @@ class Sudoku(object):
                     return False
         return True
 
+    def __len__(self):
+        return len(self.filled)
+
     def fully_equal(self, other):
         return self == other and self.candidates == other.candidates
 
     @property
     def empty(self):
         return [(x, y) for x in ALL_INDICES for y in ALL_INDICES if not self[x, y]]
+
+    @property
+    def filled(self):
+        return [(x, y) for x in ALL_INDICES for y in ALL_INDICES if self[x, y]]
 
     def load_str(self, s, empty=('.', '0'), ignore=(' ', '\n', '\t')):
         """
