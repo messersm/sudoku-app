@@ -1,22 +1,22 @@
 # standard imports
 from os.path import join
-from random import choice
+from random import shuffle
 
 # kivy imports
 from kivy.app import App
+from kivy.animation import Animation
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ObjectProperty
 from kivy.storage.jsonstore import JsonStore
 
 # local imports
-from sudokulib.field import Field
+from sudokulib.field import Field, HIGHLIGHT_COLORS
 from sudokulib.popup import CallbackPopup
 
 from sudokutools.analyze import SudokuAnalyzer
 from sudokutools.generate import SudokuGenerator
 from sudokutools.solve import CalculateCandidates, solve
 from sudokutools.sudoku import VALID_NUMBERS, Sudoku
-from sudokutools.examples import EXAMPLES
 
 STATEFILE = "state.json"
 
@@ -88,11 +88,37 @@ class SudokuGrid(GridLayout):
         self.lock_filled_fields(True)
         self.orig = self.sudoku.copy()
 
+    def play_win_animation(self):
+        color1 = HIGHLIGHT_COLORS["selected"][1]
+        color2 = HIGHLIGHT_COLORS["default"][1]
+
+        fields = [self.fields[(x, y)] for y in range(9) for x in range(9)]
+        last_field = fields.pop()
+
+        wait = 0
+        for field in fields:
+            anim = Animation(duration=wait)
+            anim += Animation(highlight_color=color1, duration=0.5)
+            anim += Animation(highlight_color=color2, duration=0.5)
+            anim.start(field)
+            wait += 0.05
+
+        last_anim = Animation(duration=wait)
+        last_anim += Animation(highlight_color=color1, duration=0.5)
+        last_anim += Animation(highlight_color=color2, duration=0.5)
+
+        last_anim.bind(
+            on_complete=lambda anim, field: self.display_win_popup())
+        last_anim.start(last_field)
+
     def sudoku_complete(self):
         if self.sudoku_won:
             return
 
         self.sudoku_won = True
+        self.play_win_animation()
+
+    def display_win_popup(self):
         winpopup = CallbackPopup(
             title="Sudoku complete",
             text="Congratulations, you have won!",
@@ -101,20 +127,14 @@ class SudokuGrid(GridLayout):
                 ("New Sudoku", self.new_sudoku)])
         winpopup.open()
 
-    # TODO: Move this code to sudokutools
-    def check_complete(self):
-        if self.sudoku.empty:
-            return False
-
-        if SudokuAnalyzer.find_all_conflicts(self.sudoku):
-            return False
-
-        return True
-
     def clear(self):
         for field in self.fields.values():
             if not field.locked:
                 field.content = None
+
+    def check_win(self):
+        if SudokuAnalyzer.is_complete(self.sudoku):
+            self.sudoku_complete()
 
     def new_sudoku(self):
         self.sudoku_won = False
@@ -134,9 +154,6 @@ class SudokuGrid(GridLayout):
     def enter_number(self, number):
         if self.selected_field:
             self.selected_field.input(number)
-
-        if self.check_complete():
-            self.sudoku_complete()
 
     def lock_filled_fields(self, locked=True):
         for x in range(9):
@@ -164,8 +181,7 @@ class SudokuGrid(GridLayout):
         self.sudoku = self.solution
         self.sync_sudoku_to_gui()
 
-        if self.check_complete():
-            self.sudoku_complete()
+        self.check_win()
 
     def solve_field(self):
         if self.selected_field:
@@ -173,8 +189,7 @@ class SudokuGrid(GridLayout):
             self.sudoku[coords] = self.solution[coords]
             self.sync_sudoku_to_gui()
 
-        if self.check_complete():
-            self.sudoku_complete()
+        self.check_win()
 
     def save_state(self, filename=STATEFILE):
         if self.sudoku:
