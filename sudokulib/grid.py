@@ -5,6 +5,7 @@ from random import choice
 # kivy imports
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
+from kivy.properties import ObjectProperty
 from kivy.storage.jsonstore import JsonStore
 
 # local imports
@@ -21,6 +22,8 @@ STATEFILE = "state.json"
 
 
 class SudokuGrid(GridLayout):
+    id_label = ObjectProperty(None)
+
     def __init__(self, **kwargs):
         super(SudokuGrid, self).__init__(rows=9, cols=9)
 
@@ -126,6 +129,7 @@ class SudokuGrid(GridLayout):
         self.solution = solve(self.sudoku, inplace=False)
         self.lock_filled_fields()
         self.sync_sudoku_to_gui()
+        self.id_label.text = "id: %s" % self.sudoku.to_base62()
 
     def enter_number(self, number):
         if self.selected_field:
