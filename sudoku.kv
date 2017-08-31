@@ -14,20 +14,33 @@
             size: self.width, self.height
             pos: self.pos
 
-        # bottom line
+        # bottom border
         Color:
             rgba: self.bottom_border_color
         Line:
             width: self.bottom_border_width
             points: self.x, self.y, self.x + self.width, self.y
 
-        # left line
+        # top border
+        Color:
+            rgba: self.top_border_color
+        Line:
+            width: self.top_border_width
+            points: self.x, self.y + self.height, self.x + self.width, self.y + self.height
+
+        # left border
         Color:
             rgba: self.left_border_color
-        
         Line:
             width: self.left_border_width
             points: self.x, self.y, self.x, self.y + self.height
+
+        # right border
+        Color:
+            rgba: self.right_border_color
+        Line:
+            width: self.right_border_width
+            points: self.x + self.width, self.y, self.x + self.width, self.y + self.height
 
     halign: "center"
     valign: "middle"
@@ -39,9 +52,10 @@
     grid: grid
     info_label: info_label
 
+    # Menu row
     BoxLayout:
         orientation: "horizontal"
-        size_hint: (1, 0.4)
+        size_hint_y: 0.05
 
         Label:
             size_hint: (0.8, 1)
@@ -122,12 +136,24 @@
                     height: menu_button.height
                     on_release: grid.edit_custom_sudoku(), menu_dropdown.select(self)
 
-    SudokuGrid:
-        id: grid
-        id_label: info_label
-        size_hint: (None, None)
-        width: self.parent.width
-        height: self.width
+    # SudokuContainer
+    BoxLayout:
+        orientation: "horizontal"
+        size_hint_y: 0.9
+
+        # padding
+        Padding
+
+        SudokuGrid:
+            id: grid
+            id_label: info_label
+            pos: self.parent.pos
+            size_hint: (None, None)
+            width: min(self.parent.size)
+            height: min(self.parent.size)
+
+        # more padding
+        Padding
 
     # Slider:
         # min: -1
@@ -137,13 +163,22 @@
         # size_hint: (1, 0.2)
 
     NumberInput:
-        size_hint_y: 0.2
+        size_hint_y: 0.1
         grid: grid
 
     Label:
-        size_hint: (1, 0.4)
+        size_hint_y: 0.05
         id: info_label
         # text: "Hint: double tap a field to edit candidates."
+
+<Padding@Widget>:
+    canvas:
+        Color:
+            # light grey
+            rgba: 0.9, 0.9, 0.9, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
 
 <NumberButton@Button>:
     size_hint: (1.0 / len(self.parent.children), 1)

@@ -32,11 +32,15 @@ class Field(Label):
     DEFAULT_BORDER_COLOR = (0.5, 0.5, 0.5, 1)
     THICK_BORDER_COLOR = (0, 0, 0, 1)
     left_border_color = ListProperty(DEFAULT_BORDER_COLOR)
+    right_border_color = ListProperty(DEFAULT_BORDER_COLOR)
+    top_border_color = ListProperty(DEFAULT_BORDER_COLOR)
     bottom_border_color = ListProperty(DEFAULT_BORDER_COLOR)
 
     DEFAULT_BORDER_WIDTH = 1
     THICK_BORDER_WIDTH = 1.5
     left_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
+    right_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
+    top_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
     bottom_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
 
     def __init__(self, coords=(-1, -1), **kwargs):
@@ -53,9 +57,17 @@ class Field(Label):
 
         # select border style
         (x, y) = coords
-        if x % 3 == 0:
+        if x == 0:
             self.left_border_color = self.THICK_BORDER_COLOR
             self.left_border_width = self.THICK_BORDER_WIDTH
+
+        if x % 3 == 2:
+            self.right_border_color = self.THICK_BORDER_COLOR
+            self.right_border_width = self.THICK_BORDER_WIDTH
+
+        if y == 0:
+            self.top_border_color = self.THICK_BORDER_COLOR
+            self.top_border_width = self.THICK_BORDER_WIDTH
 
         if y % 3 == 2:
             self.bottom_border_color = self.THICK_BORDER_COLOR
