@@ -219,7 +219,8 @@ class Bruteforce(SolveMethod):
             raise StopIteration
         for (x, y) in sudoku.empty:
             if new_sudoku[(x, y)]:
-                yield SetNumber(cls, sudoku, (x, y), new_sudoku[(x, y)])
+                yield SetNumber(
+                    cls, sudoku, (x, y), new_sudoku[(x, y)], details=None)
 
     @classmethod
     def search_field(cls, sudoku, (x, y)):
