@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import platform
+
 # standard imports
 from random import choice
 from os.path import join
@@ -17,7 +19,9 @@ from kivy.uix.boxlayout import BoxLayout
 # needed by sudoku.kv
 from sudokulib.grid import SudokuGrid
 
+
 STATEFILE = "state.json"
+
 
 class SudokuWidget(BoxLayout):
     grid = ObjectProperty(None)
@@ -30,13 +34,6 @@ class SudokuWidget(BoxLayout):
         # Add hardware keyboard support
         self.__keyboard = Window.request_keyboard(
             self.__on_keyboard_closed, self, 'text')
-
-        if self.__keyboard.widget:
-            # This is a virtual keyboard (we're running on Android) - throw it away
-            self.__keyboard.widget.parent.remove_widget(self.__keyboard.widget)
-            self.__keyboard.release()
-        else:
-            self.__keyboard.bind(on_key_down=self.__on_keyboard_down)
 
         self.KEYS = {}
         for i in range(10):
