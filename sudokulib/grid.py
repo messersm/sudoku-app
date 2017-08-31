@@ -1,22 +1,22 @@
 # standard imports
 from os.path import join
-from random import choice
+from random import shuffle
 
 # kivy imports
 from kivy.app import App
+from kivy.animation import Animation
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ObjectProperty
 from kivy.storage.jsonstore import JsonStore
 
 # local imports
-from sudokulib.field import Field
+from sudokulib.field import Field, HIGHLIGHT_COLORS
 from sudokulib.popup import CallbackPopup
 
 from sudokutools.analyze import SudokuAnalyzer
 from sudokutools.generate import SudokuGenerator
 from sudokutools.solve import CalculateCandidates, solve
 from sudokutools.sudoku import VALID_NUMBERS, Sudoku
-from sudokutools.examples import EXAMPLES
 
 STATEFILE = "state.json"
 
@@ -88,11 +88,37 @@ class SudokuGrid(GridLayout):
         self.lock_filled_fields(True)
         self.orig = self.sudoku.copy()
 
+    def play_win_animation(self):
+        color1 = HIGHLIGHT_COLORS["selected"][1]
+        color2 = HIGHLIGHT_COLORS["default"][1]
+
+        fields = [self.fields[(x, y)] for y in range(9) for x in range(9)]
+        last_field = fields.pop()
+
+        wait = 0
+        for field in fields:
+            anim = Animation(duration=wait)
+            anim += Animation(highlight_color=color1, duration=0.5)
+            anim += Animation(highlight_color=color2, duration=0.5)
+            anim.start(field)
+            wait += 0.05
+
+        last_anim = Animation(duration=wait)
+        last_anim += Animation(highlight_color=color1, duration=0.5)
+        last_anim += Animation(highlight_color=color2, duration=0.5)
+
+        last_anim.bind(
+            on_complete=lambda anim, field: self.display_win_popup())
+        last_anim.start(last_field)
+
     def sudoku_complete(self):
         if self.sudoku_won:
             return
 
         self.sudoku_won = True
+        self.play_win_animation()
+
+    def display_win_popup(self):
         winpopup = CallbackPopup(
             title="Sudoku complete",
             text="Congratulations, you have won!",
