@@ -9,7 +9,8 @@ from sudokutools.coord import column_coords, row_coords, \
 VALID_NUMBERS = (1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 # Results #
-BaseResult = namedtuple("BaseResult", ["method", "sudoku", "coords", "value"])
+BaseResult = namedtuple(
+    "BaseResult", ["method", "sudoku", "coords", "value", "details"])
 
 
 class SetNumber(BaseResult):
@@ -81,7 +82,7 @@ class CalculateCandidates(SolveMethod):
     @classmethod
     def search_field(cls, sudoku, (x, y)):
         yield SetCandidates(
-            cls, sudoku, (x, y), cls.call(sudoku, (x, y)))
+            cls, sudoku, (x, y), cls.call(sudoku, (x, y)), None)
 
     @classmethod
     def call(cls, sudoku, (x, y)):
@@ -116,9 +117,9 @@ class NakedSingle(SolveMethod):
         candidates = sudoku.candidates[(x, y)]
         if len(candidates) == 1:
             value = candidates[0]
-            yield SetNumber(cls, sudoku, (x, y), value)
+            yield SetNumber(cls, sudoku, (x, y), value, None)
             for (i, j) in surrounding_coords((x, y), include=False):
-                yield RemoveCandidates(cls, sudoku, (i, j), [value])
+                yield RemoveCandidates(cls, sudoku, (i, j), [value], (x, y))
 
 
 class HiddenSingle(SolveMethod):
@@ -128,20 +129,25 @@ class HiddenSingle(SolveMethod):
     def search_field(cls, sudoku, (x, y)):
         for f in column_coords, row_coords, quad_coords:
             other_candidates = []
-            for (i, j) in f((x, y), include=False):
+            coords = [(i, j) for (i, j) in f((x, y), include=False)]
+            for (i, j) in coords:
                 other_candidates.extend(sudoku.candidates[(i, j)])
 
             for number in VALID_NUMBERS:
                 if number not in other_candidates:
-                    for result in cls.__results(sudoku, (x, y), number):
+                    for result in cls.__results(sudoku, (x, y), number, coords):
                         yield result
                     raise StopIteration
 
     @classmethod
-    def __results(cls, sudoku, (x, y), number):
-        yield SetNumber(cls, sudoku, (x, y), number)
+    def __results(cls, sudoku, (x, y), number, coords):
+        yield SetNumber(
+            cls, sudoku, (x, y), number,
+            details=dict(coords=coords))
         for (i, j) in surrounding_coords((x, y), include=False):
-            yield RemoveCandidates(cls, sudoku, (i, j), [number])
+            yield RemoveCandidates(
+                cls, sudoku, (i, j), [number],
+                details=dict(pos=(x, y), coords=coords))
 
 
 class Bruteforce(SolveMethod):
