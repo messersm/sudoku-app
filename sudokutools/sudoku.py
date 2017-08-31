@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+from sudokutools import encode
+
 ALL_INDICES = (0, 1, 2, 3, 4, 5, 6, 7, 8)
 VALID_NUMBERS = (1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -162,6 +164,27 @@ class Sudoku(object):
 
             rows.append(column_sep.join(column))
         return row_sep.join(rows)
+
+    def to_int(self):
+        s = self.to_str(column_sep='', row_sep='', empty='0')
+        return int(s)
+
+    @classmethod
+    def from_int(cls, integer):
+        s = "%081d" % integer
+        if len(s) > 81:
+            raise ValueError("Invalid sudoku integer: %d" % integer)
+        return cls.from_str(s)
+
+    def to_base62(self):
+        return encode.encode(self.to_int(), encoding="base62")
+
+    @classmethod
+    def from_base62(cls, s):
+        """
+
+        """
+        return cls.from_int(encode.decode(s, encoding="base62"))
 
     def copy(self):
         return Sudoku(
