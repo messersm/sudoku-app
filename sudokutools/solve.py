@@ -12,18 +12,29 @@ VALID_NUMBERS = (1, 2, 3, 4, 5, 6, 7, 8, 9)
 BaseResult = namedtuple("BaseResult", ["method", "sudoku", "coords", "value"])
 
 
-class NumberResult(BaseResult):
+class SetNumber(BaseResult):
     def apply(self, sudoku=None):
         if not sudoku:
             sudoku = self.sudoku
         sudoku[self.coords] = self.value
 
 
-class CandidatesResult(BaseResult):
+class SetCandidates(BaseResult):
     def apply(self, sudoku=None):
         if not sudoku:
             sudoku = self.sudoku
         sudoku.candidates[self.coords] = self.value
+
+
+class RemoveCandidates(BaseResult):
+    def apply(self, sudoku=None):
+        if not sudoku:
+            sudoku = self.sudoku
+        for item in self.value:
+            try:
+                sudoku.candidates[self.coords].remove(item)
+            except (KeyError, ValueError):
+                pass
 
 
 # Solve methods #
@@ -33,8 +44,7 @@ class SolveMethod(object):
     @classmethod
     def search(cls, sudoku):
         for (x, y) in sudoku.empty:
-            result = cls.search_field(sudoku, (x, y))
-            if result:
+            for result in cls.search_field(sudoku, (x, y)):
                 yield result
 
     @classmethod
@@ -42,21 +52,20 @@ class SolveMethod(object):
         raise NotImplementedError("Implement in subclass!")
 
     @classmethod
-    def apply(cls, sudoku, inplace=True):
-        if not inplace:
-            sudoku = sudoku.copy()
+    def apply(cls, sudoku):
+        count = 0
         for result in cls.search(sudoku):
             result.apply()
-        return sudoku
+            count += 1
+        return count
 
     @classmethod
-    def apply_field(cls, sudoku, (x, y), inplace=True):
-        result = cls.search_field(sudoku, (x, y))
-        if result:
-            if not inplace:
-                sudoku = sudoku.copy()
+    def apply_field(cls, sudoku, (x, y)):
+        count = 0
+        for result in cls.search_field(sudoku, (x, y)):
             result.apply(sudoku)
-        return sudoku
+            count +=1
+        return count
 
 
 class CalculateCandidates(SolveMethod):
@@ -66,13 +75,12 @@ class CalculateCandidates(SolveMethod):
     def search(cls, sudoku):
         for x in range(9):
             for y in range(9):
-                result = cls.search_field(sudoku, (x, y))
-                if result:
+                for result in cls.search_field(sudoku, (x, y)):
                     yield result
 
     @classmethod
     def search_field(cls, sudoku, (x, y)):
-        return CandidatesResult(
+        yield SetCandidates(
             cls, sudoku, (x, y), cls.call(sudoku, (x, y)))
 
     @classmethod
@@ -107,7 +115,10 @@ class NakedSingle(SolveMethod):
     def search_field(cls, sudoku, (x, y)):
         candidates = sudoku.candidates[(x, y)]
         if len(candidates) == 1:
-            return NumberResult(cls, sudoku, (x, y), candidates[0])
+            value = candidates[0]
+            yield SetNumber(cls, sudoku, (x, y), value)
+            for (i, j) in surrounding_coords((x, y), include=False):
+                yield RemoveCandidates(cls, sudoku, (i, j), [value])
 
 
 class HiddenSingle(SolveMethod):
@@ -122,7 +133,15 @@ class HiddenSingle(SolveMethod):
 
             for number in VALID_NUMBERS:
                 if number not in other_candidates:
-                    return NumberResult(cls, sudoku, (x, y), number)
+                    for result in cls.__results(sudoku, (x, y), number):
+                        yield result
+                    raise StopIteration
+
+    @classmethod
+    def __results(cls, sudoku, (x, y), number):
+        yield SetNumber(cls, sudoku, (x, y), number)
+        for (i, j) in surrounding_coords((x, y), include=False):
+            yield RemoveCandidates(cls, sudoku, (i, j), [number])
 
 
 class Bruteforce(SolveMethod):
@@ -194,7 +213,7 @@ class Bruteforce(SolveMethod):
             raise StopIteration
         for (x, y) in sudoku.empty:
             if new_sudoku[(x, y)]:
-                yield NumberResult(cls, sudoku, (x, y), new_sudoku[(x, y)])
+                yield SetNumber(cls, sudoku, (x, y), new_sudoku[(x, y)])
 
     @classmethod
     def search_field(cls, sudoku, (x, y)):
@@ -237,21 +256,24 @@ class SudokuSolver(object):
         if not inplace:
             sudoku = sudoku.copy()
 
+        # Calculate candidates first
+        CalculateCandidates.apply(sudoku)
+
         while True:
-            empty_count = len(sudoku.empty)
-            if empty_count == 0:
-                break
-
-            # Recalculate candidates in each round
-            CalculateCandidates.apply(sudoku)
-            for m in self.methods:
-                m.apply(sudoku)
-
-            # Couldn't solve
-            if len(sudoku.empty) == empty_count:
+            if not self._apply_methods(sudoku):
                 break
 
         return sudoku
+
+    def _apply_methods(self, sudoku):
+        # apply all results of the first
+        # method, that has results - then return
+        count = 0
+        for m in self.methods:
+            count += m.apply(sudoku)
+            if count > 0:
+                return count
+        return 0
 
     def __str__(self):
         return ''
