@@ -56,3 +56,7 @@ class SudokuAnalyzer(object):
                 conflicts.extend(xy_conflicts)
 
         return conflicts
+
+    @classmethod
+    def is_complete(cls, sudoku):
+        return len(sudoku.empty) == 0 and not cls.find_all_conflicts(sudoku)

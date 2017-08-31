@@ -177,6 +177,9 @@ class Field(Label):
                     while HIGHLIGHT_COLORS["invalid"] in self.__highlights:
                         self.remove_highlight("invalid")
 
+                    # check, if the sudoku is complete
+                    self.parent.check_win()
+
         self.__selected = selected
 
     def input(self, inp):

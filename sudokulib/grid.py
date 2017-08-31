@@ -101,20 +101,14 @@ class SudokuGrid(GridLayout):
                 ("New Sudoku", self.new_sudoku)])
         winpopup.open()
 
-    # TODO: Move this code to sudokutools
-    def check_complete(self):
-        if self.sudoku.empty:
-            return False
-
-        if SudokuAnalyzer.find_all_conflicts(self.sudoku):
-            return False
-
-        return True
-
     def clear(self):
         for field in self.fields.values():
             if not field.locked:
                 field.content = None
+
+    def check_win(self):
+        if SudokuAnalyzer.is_complete(self.sudoku):
+            self.sudoku_complete()
 
     def new_sudoku(self):
         self.sudoku_won = False
@@ -134,9 +128,6 @@ class SudokuGrid(GridLayout):
     def enter_number(self, number):
         if self.selected_field:
             self.selected_field.input(number)
-
-        if self.check_complete():
-            self.sudoku_complete()
 
     def lock_filled_fields(self, locked=True):
         for x in range(9):
@@ -164,8 +155,7 @@ class SudokuGrid(GridLayout):
         self.sudoku = self.solution
         self.sync_sudoku_to_gui()
 
-        if self.check_complete():
-            self.sudoku_complete()
+        self.check_win()
 
     def solve_field(self):
         if self.selected_field:
@@ -173,8 +163,7 @@ class SudokuGrid(GridLayout):
             self.sudoku[coords] = self.solution[coords]
             self.sync_sudoku_to_gui()
 
-        if self.check_complete():
-            self.sudoku_complete()
+        self.check_win()
 
     def save_state(self, filename=STATEFILE):
         if self.sudoku:
