@@ -32,7 +32,8 @@ class SudokuWidget(BoxLayout):
             self.__on_keyboard_closed, self, 'text')
 
         if self.__keyboard.widget:
-            # This is a virtual keyboard - throw it away
+            # This is a virtual keyboard (we're running on Android) - throw it away
+            self.__keyboard.widget.parent.remove_widget(self.__keyboard.widget)
             self.__keyboard.release()
         else:
             self.__keyboard.bind(on_key_down=self.__on_keyboard_down)
