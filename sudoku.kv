@@ -55,23 +55,17 @@
     # Menu row
     BoxLayout:
         orientation: "horizontal"
-        size_hint_y: 0.15
+        size_hint_y: None
+        height: "50sp"
 
         Label:
             size_hint: (0.8, 1)
             halign: 'left' # is ignored
             text: "Sudoku"
 
-        # Settings button
-        Button:
-            # size_hint: (0.2, 1)
-            text: "Kivy\nSettings"
-            halign: "center"
-            on_press: app.open_settings()
-
         # Help Dropdown:
         BoxLayout:
-            size_hint: (0.2, 1)
+            size_hint_x: 0.2
         
             Button:
                 id: help_button
@@ -103,6 +97,13 @@
                     size_hint_y: None
                     height: help_button.height
                     on_release: grid.solve(), help_dropdown.select(self)
+
+        # Settings button
+        Button:
+            size_hint_x: 0.2
+            text: "Settings"
+            halign: "center"
+            on_press: app.open_settings()
 
         BoxLayout:
             size_hint_x: 0.2
@@ -140,7 +141,7 @@
     BoxLayout:
         id: grid_container
         orientation: "horizontal"
-        size_hint_y: 0.8
+        size_hint_y: 1
 
         # Padding (left)
         Padding
@@ -165,11 +166,13 @@
         # size_hint: (1, 0.2)
 
     NumberInput:
-        size_hint_y: 0.1
+        size_hint_y: None
+        height: "50sp"
         grid: grid
 
     Label:
-        size_hint_y: 0.05
+        size_hint_y: None
+        height: "25sp"
         id: info_label
         # text: "Hint: double tap a field to edit candidates."
 

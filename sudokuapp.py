@@ -9,9 +9,10 @@ from os.path import join
 
 # kivy imports
 from kivy.app import App
-from kivy.config import Config
+from kivy.config import Config, ConfigParser
 from kivy.core.window import Window
 from kivy.properties import ObjectProperty
+from kivy.uix.settings import Settings
 from kivy.uix.boxlayout import BoxLayout
 
 
@@ -34,6 +35,7 @@ class SudokuWidget(BoxLayout):
         # Add hardware keyboard support
         self.__keyboard = Window.request_keyboard(
             self.__on_keyboard_closed, self, 'text')
+        self.__keyboard.bind(on_key_down=self.__on_keyboard_down)
 
         self.KEYS = {}
         for i in range(10):
@@ -61,9 +63,23 @@ class SudokuWidget(BoxLayout):
 
 class SudokuApp(App):
     def build(self):
+        self.use_kivy_settings = False
+
         self.sudoku_widget = SudokuWidget()
         self.statefilename = join(self.user_data_dir, STATEFILE)
         return self.sudoku_widget
+
+    def build_config(self, config):
+        config.setdefaults('graphics', {
+            'fullscreen': True
+        })
+
+    def build_settings(self, settings):
+        settings.add_json_panel("Settings", self.config, "settings.json")
+
+    def on_config_change(self, config, section, key, value):
+        # TODO: broadcast change to widgets
+        pass
 
     def on_pause(self):
         self.sudoku_widget.save_state(self.statefilename)
