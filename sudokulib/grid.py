@@ -36,6 +36,8 @@ class SudokuGrid(GridLayout):
 
         self.__in_edit_custom = False
 
+        App.get_running_app().bind(on_settings_change=self.on_settings_change)
+
         # mind the order here - it's important
         for y in range(9):
             for x in range(9):
@@ -207,3 +209,6 @@ class SudokuGrid(GridLayout):
             self.sudoku = Sudoku.from_str(store['sudoku']['current'])
             self.solution = solve(self.sudoku, inplace=False)
             self.sync_sudoku_to_gui()
+
+    def on_settings_change(self, app, section, key, value):
+        print("Grid got settings change!")

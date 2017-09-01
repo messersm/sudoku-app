@@ -62,6 +62,9 @@ class SudokuWidget(BoxLayout):
         pass
 
 class SudokuApp(App):
+    __events__ = list(App.__events__)
+    __events__.append('on_settings_change')
+
     def build(self):
         self.use_kivy_settings = False
 
@@ -70,15 +73,15 @@ class SudokuApp(App):
         return self.sudoku_widget
 
     def build_config(self, config):
-        config.setdefaults('graphics', {
-            'fullscreen': True
-        })
+        config.setdefaults('graphics', { 'fullscreen': True })
 
     def build_settings(self, settings):
         settings.add_json_panel("Settings", self.config, "settings.json")
 
     def on_config_change(self, config, section, key, value):
-        # TODO: broadcast change to widgets
+        self.dispatch('on_settings_change', section, key, value)
+
+    def on_settings_change(self, section, key, value):
         pass
 
     def on_pause(self):
