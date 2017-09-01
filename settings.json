@@ -1,13 +1,30 @@
 [
-    {
-        "type": "title",
-        "title": "Windows"
-    },
-    {
-        "type": "bool",
-        "title": "Fullscreen",
-        "desc": "Set the window in windowed or fullscreen",
-        "section": "graphics",
-        "key": "fullscreen"
-    }
+  {
+    "type": "title",
+    "title": "Highlighting"
+  },
+  {
+    "type": "bool",
+    "title": "Highlight surrounding fields",
+    "desc": "Highlight fields in the same column, row or quad as the selected field.",
+    "section": "highlight",
+    "key": "surrounding",
+    "default": "1"
+  },
+  {
+    "type": "bool",
+    "title": "Highlight conflicting fields",
+    "desc": "Highlight fields that conflict with surrounding fields.",
+    "section": "highlight",
+    "key": "conflicts",
+    "default": "1"
+  },
+  {
+    "type": "bool",
+    "title": "Highlight incorrect fields",
+    "desc": "Highlight fields that don't match the solution.",
+    "section": "highlight",
+    "key": "incorrect",
+    "default": "0"
+  }
 ]

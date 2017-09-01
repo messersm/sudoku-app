@@ -47,6 +47,32 @@
     color: 0, 0, 0, 1
     font_size: "27sp"
 
+<GameWidget>:
+    orientation: "vertical"
+    grid: grid
+
+    # Menu
+    BoxLayout:
+        orientation: "horizontal"
+        size_hint_y: None
+        height: dp(100)
+
+        Label:
+            size_hint_x: 0.6
+            halign: 'left'
+            text: "Sudoku"
+
+        Button:
+            text: "Settings"
+            on_release: app.open_settings()
+
+        Button:
+            text: "Home"
+
+        SudokuGrid:
+            id: grid
+
+
 <SudokuWidget>:
     orientation: "vertical"
     grid: grid

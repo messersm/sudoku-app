@@ -7,6 +7,8 @@ import platform
 from random import choice
 from os.path import join
 
+import json
+
 # kivy imports
 from kivy.app import App
 from kivy.config import Config, ConfigParser
@@ -22,6 +24,15 @@ from sudokulib.grid import SudokuGrid
 
 
 STATEFILE = "state.json"
+
+class GameWidget(BoxLayout):
+    grid = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super(GameWidget, self).__init__(**kwargs)
+        self.__app_config = App.get_running_app().config
+
+
 
 
 class SudokuWidget(BoxLayout):
@@ -66,22 +77,45 @@ class SudokuApp(App):
     __events__.append('on_settings_change')
 
     def build(self):
-        self.use_kivy_settings = False
+        # self.use_kivy_settings = False
+        self.use_kivy_settings = True
 
-        self.sudoku_widget = SudokuWidget()
-        self.statefilename = join(self.user_data_dir, STATEFILE)
-        return self.sudoku_widget
+        return GameWidget()
+
+        # self.sudoku_widget = SudokuWidget()
+        # self.statefilename = join(self.user_data_dir, STATEFILE)
+        # return self.sudoku_widget
+
+    def __read_default_settings(self):
+        defaults = {}
+
+        with open("settings.json") as f:
+            data = json.load(f)
+        for setting in data:
+            section = setting.get("section", "")
+            if setting["type"] != "title":
+                section_defaults = defaults.get(section, {})
+                section_defaults[setting["key"]] = setting["default"]
+                defaults[section] = section_defaults
+
+        return defaults
 
     def build_config(self, config):
-        config.setdefaults('graphics', { 'fullscreen': True })
+        defaults = self.__read_default_settings()
+        for section, section_defaults in defaults.items():
+            print("Setting defaults for %s:" % section)
+            print(section_defaults)
+            config.setdefaults(section, section_defaults)
 
     def build_settings(self, settings):
         settings.add_json_panel("Settings", self.config, "settings.json")
 
     def on_config_change(self, config, section, key, value):
         self.dispatch('on_settings_change', section, key, value)
+        print(section, key, value)
 
     def on_settings_change(self, section, key, value):
+        # default handler (required)
         pass
 
     def on_pause(self):
