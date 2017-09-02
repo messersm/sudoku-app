@@ -204,11 +204,12 @@ class SudokuGrid(GridLayout):
         store = JsonStore(filename)
         if 'sudoku' in store:
             self.orig = Sudoku.from_str(store['sudoku']['orig'])
-            self.sudoku = self.orig
+            self.sudoku = self.orig.copy()
             self.lock_filled_fields()
             self.sudoku = Sudoku.from_str(store['sudoku']['current'])
-            self.solution = solve(self.sudoku, inplace=False)
+            self.solution = self.sudoku.copy()
+            solve(self.solution)
             self.sync_sudoku_to_gui()
 
     def on_settings_change(self, app, section, key, value):
-        print("Grid got settings change!")
+        pass

@@ -77,14 +77,11 @@ class SudokuApp(App):
     __events__.append('on_settings_change')
 
     def build(self):
-        # self.use_kivy_settings = False
-        self.use_kivy_settings = True
+        self.use_kivy_settings = False
 
-        return GameWidget()
-
-        # self.sudoku_widget = SudokuWidget()
-        # self.statefilename = join(self.user_data_dir, STATEFILE)
-        # return self.sudoku_widget
+        self.sudoku_widget = SudokuWidget()
+        self.statefilename = join(self.user_data_dir, STATEFILE)
+        return self.sudoku_widget
 
     def __read_default_settings(self):
         defaults = {}
@@ -103,8 +100,6 @@ class SudokuApp(App):
     def build_config(self, config):
         defaults = self.__read_default_settings()
         for section, section_defaults in defaults.items():
-            print("Setting defaults for %s:" % section)
-            print(section_defaults)
             config.setdefaults(section, section_defaults)
 
     def build_settings(self, settings):
@@ -112,7 +107,6 @@ class SudokuApp(App):
 
     def on_config_change(self, config, section, key, value):
         self.dispatch('on_settings_change', section, key, value)
-        print(section, key, value)
 
     def on_settings_change(self, section, key, value):
         # default handler (required)

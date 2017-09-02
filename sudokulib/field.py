@@ -1,3 +1,4 @@
+from kivy.app import App
 from kivy.uix.label import Label
 from kivy.properties import ListProperty, NumericProperty
 
@@ -15,13 +16,18 @@ BACKGROUND_COLORS = {
     "default": (1, (1, 1, 1, 1))
 }
 
-HIGHLIGHT_COLORS = {
-    "selected": (0, (0.5, 0.5, 1, 1)),
-    "invalid": (1, (1, 0, 0, 1)),
-    "influenced": (2, (0.7, 0.7, 1, 1)),
-    "default": (3, (1, 1, 1, 0))
+OPTIONAL_HIGHLIGHT_COLORS = {
+    "conflicts": (1, (1, 0, 0, 1)),
+    "incorrect": (2, (1, 0.4, 0.4, 1)),
+    "surrounding": (3, (0.7, 0.7, 1, 1)),
 }
 
+HIGHLIGHT_COLORS = {
+    "selected": (0, (0.5, 0.5, 1, 1)),
+    "default": (4, (1, 1, 1, 0))
+}
+
+HIGHLIGHT_COLORS.update(OPTIONAL_HIGHLIGHT_COLORS)
 
 class Field(Label):
     """Represents on visible field in the sudoku grid.
@@ -47,8 +53,13 @@ class Field(Label):
         super(Field, self).__init__(**kwargs)
         self.coords = coords
 
+        # app config access
+        app = App.get_running_app()
+        self.__app_config = app.config
+        app.bind(on_settings_change=self.on_settings_change)
+
         # highlight
-        self.__highlights = [HIGHLIGHT_COLORS["default"]]
+        self.__highlights = ["default"]
 
         # state
         self.__locked = False
@@ -100,17 +111,23 @@ class Field(Label):
             self.text = str(self.content)
 
     def __update_highlight_color(self):
-        self.__highlights.sort()
-        self.highlight_color = self.__highlights[0][1]
+        used_highlights = []
+        for name in self.__highlights:
+            if name in OPTIONAL_HIGHLIGHT_COLORS:
+                if self.__app_config.get("highlight", name) == "1":
+                    used_highlights.append(HIGHLIGHT_COLORS[name])
+            else:
+                used_highlights.append(HIGHLIGHT_COLORS[name])
+
+        used_highlights.sort()
+        self.highlight_color = used_highlights[0][1]
 
     def add_highlight(self, name):
-        highlight = HIGHLIGHT_COLORS[name]
-        self.__highlights.append(highlight)
+        self.__highlights.append(name)
         self.__update_highlight_color()
 
     def remove_highlight(self, name):
-        highlight = HIGHLIGHT_COLORS[name]
-        self.__highlights.remove(highlight)
+        self.__highlights.remove(name)
         self.__update_highlight_color()
 
     def reset_highlight(self):
@@ -163,22 +180,30 @@ class Field(Label):
                 self.parent.selected_field = self
                 self.add_highlight("selected")
                 for coord in surrounding_coords(self.coords, include=False):
-                    self.parent.fields[coord].add_highlight("influenced")
+                    self.parent.fields[coord].add_highlight("surrounding")
         else:
             if self.__selected:
                 self.remove_highlight("selected")
                 for coord in surrounding_coords(self.coords, include=False):
-                    self.parent.fields[coord].remove_highlight("influenced")
+                    self.parent.fields[coord].remove_highlight("surrounding")
 
                 if SudokuAnalyzer.find_conflicts(self.parent.sudoku, self.coords):
-                    self.add_highlight("invalid")
+                    self.add_highlight("conflicts")
                 else:
                     # Yep, that's ugly.
-                    while HIGHLIGHT_COLORS["invalid"] in self.__highlights:
-                        self.remove_highlight("invalid")
+                    while "conflicts" in self.__highlights:
+                        self.remove_highlight("conflicts")
 
-                    # check, if the sudoku is complete
-                    self.parent.check_win()
+                value = self.parent.sudoku[self.coords]
+                solution_value = self.parent.solution[self.coords]
+                if value != 0 and value != solution_value:
+                    self.add_highlight("incorrect")
+                else:
+                    while "incorrect" in self.__highlights:
+                        self.remove_highlight("incorrect")
+
+                # check, if the sudoku is complete
+                self.parent.check_win()
 
         self.__selected = selected
 
@@ -216,3 +241,6 @@ class Field(Label):
         # only unselect, if the grid is touched.
         elif self.parent.collide_point(*touch.pos):
             self.select(False)
+
+    def on_settings_change(self, app, section, key, value):
+        self.__update_highlight_color()
