@@ -138,20 +138,27 @@ class SudokuGrid(GridLayout):
         if SudokuAnalyzer.is_complete(self.sudoku):
             self.sudoku_complete()
 
-    def new_sudoku(self):
-        self.sudoku_won = False
+    def load(self, orig, sudoku=None):
+        for field in self.fields.values():
+            field.reset()
 
-        if self.sudoku:
-            self.lock_filled_fields(False)
+        self.orig = orig
+        if not sudoku:
+            self.sudoku = orig.copy()
+        else:
+            self.sudoku = sudoku
+        self.solution = self.sudoku.copy()
+        solve(self.solution)
 
-        self.sudoku = SudokuGenerator.create()
-        # example = choice(EXAMPLES)[0]
-        # self.sudoku = Sudoku.from_str(example)
-        self.orig = self.sudoku.copy()
-        self.solution = solve(self.sudoku, inplace=False)
+        self.sudoku_won = SudokuAnalyzer.is_complete(self.sudoku)
         self.lock_filled_fields()
         self.sync_sudoku_to_gui()
-        self.id_label.text = "id: %s" % self.sudoku.to_base62()
+
+        # self.id_label.text = "id: %s" % self.sudoku.to_base62()
+
+    def new_sudoku(self):
+        orig = SudokuGenerator.create()
+        self.load(orig=orig)
 
     def enter_number(self, number):
         if self.selected_field:
@@ -160,7 +167,7 @@ class SudokuGrid(GridLayout):
     def lock_filled_fields(self, locked=True):
         for x in range(9):
             for y in range(9):
-                if self.sudoku[x, y] in VALID_NUMBERS:
+                if self.orig[x, y] in VALID_NUMBERS:
                     self.fields[(x, y)].lock(locked)
 
     def sync_sudoku_to_gui(self):
@@ -182,7 +189,6 @@ class SudokuGrid(GridLayout):
     def solve(self):
         self.sudoku = self.solution
         self.sync_sudoku_to_gui()
-
         self.check_win()
 
     def solve_field(self):
@@ -203,13 +209,9 @@ class SudokuGrid(GridLayout):
     def restore_state(self, filename=STATEFILE):
         store = JsonStore(filename)
         if 'sudoku' in store:
-            self.orig = Sudoku.from_str(store['sudoku']['orig'])
-            self.sudoku = self.orig.copy()
-            self.lock_filled_fields()
-            self.sudoku = Sudoku.from_str(store['sudoku']['current'])
-            self.solution = self.sudoku.copy()
-            solve(self.solution)
-            self.sync_sudoku_to_gui()
+            orig = Sudoku.from_str(store['sudoku']['orig'])
+            sudoku = Sudoku.from_str(store['sudoku']['current'])
+            self.load(orig, sudoku)
 
     def on_settings_change(self, app, section, key, value):
         pass

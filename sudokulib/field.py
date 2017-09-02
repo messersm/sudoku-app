@@ -122,6 +122,12 @@ class Field(Label):
         used_highlights.sort()
         self.highlight_color = used_highlights[0][1]
 
+    def reset(self):
+        self.lock(False)
+        self.select(False)
+        self.reset_highlight()
+        self.__update_highlight_color()
+
     def add_highlight(self, name):
         self.__highlights.append(name)
         self.__update_highlight_color()
@@ -131,7 +137,7 @@ class Field(Label):
         self.__update_highlight_color()
 
     def reset_highlight(self):
-        self.__highlights = [HIGHLIGHT_COLORS["default"]]
+        self.__highlights = ["default"]
 
     @property
     def content(self):
