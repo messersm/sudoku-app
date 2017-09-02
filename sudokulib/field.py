@@ -129,12 +129,14 @@ class Field(Label):
         self.__update_highlight_color()
 
     def add_highlight(self, name):
-        self.__highlights.append(name)
-        self.__update_highlight_color()
+        if name not in self.__highlights:
+            self.__highlights.append(name)
+            self.__update_highlight_color()
 
     def remove_highlight(self, name):
-        self.__highlights.remove(name)
-        self.__update_highlight_color()
+        if name in self.__highlights:
+            self.__highlights.remove(name)
+            self.__update_highlight_color()
 
     def reset_highlight(self):
         self.__highlights = ["default"]
