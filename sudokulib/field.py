@@ -129,9 +129,9 @@ class Field(Label):
         self.__update_highlight_color()
 
     def add_highlight(self, name):
-        if name not in self.__highlights:
-            self.__highlights.append(name)
-            self.__update_highlight_color()
+        # YES: we want multiple times the same value
+        self.__highlights.append(name)
+        self.__update_highlight_color()
 
     def remove_highlight(self, name):
         if name in self.__highlights:
