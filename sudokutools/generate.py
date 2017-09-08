@@ -1,6 +1,6 @@
 
 from sudokutools.analyze import SudokuAnalyzer
-from sudokutools.solve import Bruteforce
+from sudokutools.solve import Bruteforce, CalculateCandidates
 from sudokutools.sudoku import Sudoku, VALID_NUMBERS, ALL_INDICES
 
 from random import choice, shuffle
@@ -42,7 +42,7 @@ class SudokuGenerator(object):
         for (x, y) in sudoku.filled:
             val = sudoku[(x, y)]
             sudoku[(x, y)] = 0
-            if not SudokuAnalyzer.is_unique(sudoku):
+            if len(CalculateCandidates.call(sudoku, (x, y))) > 1:
                 sudoku[(x, y)] = val
 
     @classmethod
@@ -51,12 +51,8 @@ class SudokuGenerator(object):
         shuffle(diffs)
         for (x, y), val1, val2 in diffs:
             sudoku[(x, y)] = val1
-            sol2 = sudoku.copy()
-            Bruteforce.call(sol2, reverse=True)
-            if sol1 == sol2:
-                return True
 
-        return False
+        return SudokuAnalyzer.is_unique(sudoku)
 
     @classmethod
     def seed(cls, count=20):
