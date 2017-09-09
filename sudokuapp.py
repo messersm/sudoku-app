@@ -16,8 +16,7 @@ from kivy.core.window import Window
 from kivy.properties import ObjectProperty
 from kivy.uix.settings import Settings
 from kivy.uix.boxlayout import BoxLayout
-
-
+from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
 
 # needed by sudoku.kv
 from sudokulib.grid import SudokuGrid
@@ -33,6 +32,11 @@ class GameWidget(BoxLayout):
         self.__app_config = App.get_running_app().config
 
 
+class MenuScreen(Screen):
+    pass
+
+class GameScreen(Screen):
+    pass
 
 
 class SudokuWidget(BoxLayout):
@@ -79,9 +83,13 @@ class SudokuApp(App):
     def build(self):
         self.use_kivy_settings = False
 
-        self.sudoku_widget = SudokuWidget()
-        self.statefilename = join(self.user_data_dir, STATEFILE)
-        return self.sudoku_widget
+        self.manager = ScreenManager(transition=FadeTransition())
+        self.manager.add_widget(MenuScreen())
+        self.manager.add_widget(GameScreen())
+
+        # self.sudoku_widget = SudokuWidget()
+        # self.statefilename = join(self.user_data_dir, STATEFILE)
+        return self.manager
 
     def __read_default_settings(self):
         defaults = {}
@@ -113,11 +121,14 @@ class SudokuApp(App):
         pass
 
     def on_pause(self):
-        self.sudoku_widget.save_state(self.statefilename)
+        name = self.manager.current
+        screen = self.manager.current.get_screen(name)
+        # self.sudoku_widget.save_state(self.statefilename)
         return True
 
     def on_stop(self):
-        self.sudoku_widget.save_state(self.statefilename)
+        # self.sudoku_widget.save_state(self.statefilename)
+        pass
 
 if __name__ == '__main__':
     Config.set('graphics', 'width', '480')

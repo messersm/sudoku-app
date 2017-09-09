@@ -1,3 +1,20 @@
+<MenuScreen>:
+    name: "menu"
+
+    GridLayout:
+        rows: 2
+        Button:
+            text: "Play"
+            on_press: app.manager.current = "game"
+        Button:
+            text: "Create custom Sudoku"
+            on_press: app.manager.current = "custom"
+
+<GameScreen>:
+    name: "game"
+
+    SudokuWidget
+
 <Field>:
     canvas.before:
         # background rect
@@ -137,31 +154,8 @@
             Button:
                 id: menu_button
                 text: "Menu"
-                on_release: menu_dropdown.open(self)
-                size_hint_y: None
-                height: self.parent.height
-
-            DropDown:
-                id: menu_dropdown
-                on_parent: self.dismiss()
-
-                Button:
-                    text: "Clear"
-                    size_hint_y: None
-                    height: menu_button.height
-                    on_release: grid.clear(), menu_dropdown.select(self)
-
-                Button:
-                    text: "New"
-                    size_hint_y: None
-                    height: menu_button.height
-                    on_release: grid.new_sudoku(), menu_dropdown.select(self)
-
-                Button:
-                    text: "Custom"
-                    size_hint_y: None
-                    height: menu_button.height
-                    on_release: grid.edit_custom_sudoku(), menu_dropdown.select(self)
+                on_press: app.manager.current = "menu"
+                size_hint_y: 1
 
     # horizontal container inside the vertical container
     BoxLayout:
