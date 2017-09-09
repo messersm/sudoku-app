@@ -14,7 +14,7 @@
   {
     "type": "bool",
     "title": "Highlight conflicting fields",
-    "desc": "Highlight fields that conflict with surrounding fields.",
+    "desc": "Highlight fields that conflict with fields, that are already filled in.",
     "section": "highlight",
     "key": "conflicts",
     "default": "1"
