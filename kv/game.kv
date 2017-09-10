@@ -1,10 +1,10 @@
 <GameScreen>:
     name: "game"
+    id: gamescreen
 
     BoxLayout:
         orientation: "vertical"
         grid: grid
-        info_label: info_label
 
         # Menu row
         BoxLayout:
@@ -17,40 +17,12 @@
                 halign: 'left' # is ignored
                 text: "Sudoku"
 
-            # Help Dropdown:
-            BoxLayout:
+            # Check
+            Button:
                 size_hint_x: 0.2
-
-                Button:
-                    id: help_button
-                    # size_hint: (0.2, 1)
-                    text: "Help"
-                    on_release: help_dropdown.open(self)
-                    size_hint_y: None
-                    height: self.parent.height
-
-                DropDown:
-                    id: help_dropdown
-                    on_parent: self.dismiss()
-
-                    Button:
-                        font_size: "9sp"
-                        text: "* 2 3\n4 5 6\n7 8 9"
-                        size_hint_y: None
-                        height: help_button.height
-                        on_release: grid.auto_candidates(), help_dropdown.select(self)
-
-                    Button:
-                        text: "Solve\nfield"
-                        size_hint_y: None
-                        height: help_button.height
-                        on_release: grid.solve_field(), help_dropdown.select(self)
-
-                    Button:
-                        text: "Solve\nall"
-                        size_hint_y: None
-                        height: help_button.height
-                        on_release: grid.solve(), help_dropdown.select(self)
+                text: "Check"
+                halign: "center"
+                on_press: gamescreen.check_grid()
 
             # Settings button
             Button:
@@ -79,7 +51,6 @@
 
             SudokuGrid:
                 id: grid
-                id_label: info_label
                 pos: grid_container.pos
                 size_hint: (None, None)
                 width: min(grid_container.size)
@@ -100,9 +71,3 @@
             size_hint_y: None
             height: "50sp"
             grid: grid
-
-        Label:
-            size_hint_y: None
-            height: "25sp"
-            id: info_label
-            # text: "Hint: double tap a field to edit candidates."

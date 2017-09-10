@@ -1,24 +1,15 @@
-# standard imports
-from os.path import join
-from random import shuffle
-
 # kivy imports
-from kivy.app import App
 from kivy.animation import Animation
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ObjectProperty
-from kivy.storage.jsonstore import JsonStore
 
 # local imports
 from sudokulib.field import Field, HIGHLIGHT_COLORS
 from sudokulib.popup import CallbackPopup
 
 from sudokutools.analyze import SudokuAnalyzer
-from sudokutools.generate import SudokuGenerator
 from sudokutools.solve import CalculateCandidates, solve
 from sudokutools.sudoku import VALID_NUMBERS, Sudoku
-
-STATEFILE = "state.json"
 
 
 class SudokuGrid(GridLayout):
@@ -27,16 +18,8 @@ class SudokuGrid(GridLayout):
     def __init__(self, **kwargs):
         super(SudokuGrid, self).__init__(rows=9, cols=9)
 
-        self.sudoku_won = False
-        self.sudoku = None
-        self.orig = None
-        self.solution = None
         self.fields = {}
         self.selected_field = None
-
-        self.__in_edit_custom = False
-
-        App.get_running_app().bind(on_settings_change=self.on_settings_change)
 
         # mind the order here - it's important
         for y in range(9):
@@ -45,52 +28,7 @@ class SudokuGrid(GridLayout):
                 self.add_widget(field)
                 self.fields[(x, y)] = field
 
-        filename = join(App.get_running_app().user_data_dir, STATEFILE)
-        self.restore_state(filename=filename)
-        if not self.sudoku:
-            self.new_sudoku()
-
-    def edit_custom_sudoku(self):
-        if self.__in_edit_custom:
-            self.check_edit_custom_sudoku()
-        else:
-            self.begin_edit_custom_sudoku()
-
-    def begin_edit_custom_sudoku(self):
-        self.__in_edit_custom = True
-
-        if self.sudoku:
-            self.lock_filled_fields(False)
-
-        self.sudoku = Sudoku()
-        self.sync_sudoku_to_gui()
-
-    def check_edit_custom_sudoku(self):
-        ret = SudokuAnalyzer.is_unique(self.sudoku)
-
-        if ret is None:
-            error = CallbackPopup(
-                title="Error: Sudoku is not valid.",
-                text="Your Sudoku has no solution.",
-                callbacks=[("Back", lambda: None)])
-            error.open()
-        elif ret is False:
-            warning = CallbackPopup(
-                title="Warning: Sudoku is not unique",
-                text="Your Sudoku has multiple solutions.",
-                callbacks=[
-                    ("Back", lambda: None),
-                    ("Play anyway!", self.end_edit_custom_sudoku)])
-            warning.open()
-        elif ret is True:
-            self.end_edit_custom_sudoku()
-
-    def end_edit_custom_sudoku(self):
-        self.__in_edit_custom = False
-        self.lock_filled_fields(True)
-        self.orig = self.sudoku.copy()
-
-    def play_win_animation(self):
+    def play_win_animation(self, on_complete=None):
         color1 = HIGHLIGHT_COLORS["selected"][1]
         color2 = HIGHLIGHT_COLORS["default"][1]
 
@@ -109,16 +47,8 @@ class SudokuGrid(GridLayout):
         last_anim += Animation(highlight_color=color1, duration=0.5)
         last_anim += Animation(highlight_color=color2, duration=0.5)
 
-        last_anim.bind(
-            on_complete=lambda anim, field: self.display_win_popup())
+        last_anim.bind(on_complete=on_complete)
         last_anim.start(last_field)
-
-    def sudoku_complete(self):
-        if self.sudoku_won:
-            return
-
-        self.sudoku_won = True
-        self.play_win_animation()
 
     def display_win_popup(self):
         winpopup = CallbackPopup(
@@ -133,10 +63,6 @@ class SudokuGrid(GridLayout):
         for field in self.fields.values():
             if not field.locked:
                 field.content = None
-
-    def check_win(self):
-        if SudokuAnalyzer.is_complete(self.sudoku):
-            self.sudoku_complete()
 
     def load(self, orig, sudoku=None):
         for field in self.fields.values():
@@ -155,10 +81,6 @@ class SudokuGrid(GridLayout):
         self.sync_sudoku_to_gui()
 
         # self.id_label.text = "id: %s" % self.sudoku.to_base62()
-
-    def new_sudoku(self):
-        orig = SudokuGenerator.create()
-        self.load(orig=orig)
 
     def enter_number(self, number):
         if self.selected_field:
@@ -179,39 +101,3 @@ class SudokuGrid(GridLayout):
                     self.fields[(x, y)].content = candidates
                 elif item in VALID_NUMBERS or item is None:
                     self.fields[(x, y)].content = item
-
-    def auto_candidates(self):
-        if self.selected_field:
-            field = self.selected_field
-            candidates = CalculateCandidates.call(self.sudoku, field.coords)
-            field.content = candidates
-
-    def solve(self):
-        self.sudoku = self.solution
-        self.sync_sudoku_to_gui()
-        self.check_win()
-
-    def solve_field(self):
-        if self.selected_field:
-            coords = self.selected_field.coords
-            self.sudoku[coords] = self.solution[coords]
-            self.sync_sudoku_to_gui()
-
-        self.check_win()
-
-    def save_state(self, filename=STATEFILE):
-        if self.sudoku:
-            store = JsonStore(filename)
-            current_str = self.sudoku.to_str(row_sep='', column_sep='')
-            orig_str = self.orig.to_str(row_sep='', column_sep='')
-            store.put('sudoku', orig=orig_str, current=current_str)
-
-    def restore_state(self, filename=STATEFILE):
-        store = JsonStore(filename)
-        if 'sudoku' in store:
-            orig = Sudoku.from_str(store['sudoku']['orig'])
-            sudoku = Sudoku.from_str(store['sudoku']['current'])
-            self.load(orig, sudoku)
-
-    def on_settings_change(self, app, section, key, value):
-        pass

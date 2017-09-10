@@ -1,7 +1,10 @@
+# kivy imports
 from kivy.app import App
 from kivy.properties import ObjectProperty
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
+
+# local imports
+from sudokutools.sudoku import Sudoku
 
 
 class BaseScreen(Screen):
@@ -19,9 +22,11 @@ class BaseScreen(Screen):
         pass
 
     def save_state(self, state):
+        """Called, when the app pauses or stops."""
         pass
 
     def restore_state(self, state):
+        """Called, when this screen is instanciated"""
         pass
 
 
@@ -59,5 +64,10 @@ class GameScreen(BaseScreen):
         if input is not None:
             self.grid.enter_number(input)
 
+
 class MenuScreen(BaseScreen):
     pass
+
+
+class CustomScreen(BaseScreen):
+    grid = ObjectProperty(None)
