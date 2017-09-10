@@ -1,14 +1,22 @@
 <MenuScreen>:
     name: "menu"
 
+    BoxLayout:
+    Widget:
+        size_hint_y: 0.3
+
     GridLayout:
-        rows: 2
+        size_hint_y: 0.4
+        rows: 1
         Button:
             text: "Play"
-            on_press: app.manager.current = "game"
+            on_press: app.screens.current = "game"
         Button:
             text: "Create custom Sudoku"
-            on_press: app.manager.current = "custom"
+            on_press: app.screens.current = "custom"
+
+    Widget:
+        size_hint_y: 0.3
 
 <GameScreen>:
     name: "game"
@@ -154,7 +162,7 @@
             Button:
                 id: menu_button
                 text: "Menu"
-                on_press: app.manager.current = "menu"
+                on_press: app.screens.current = "menu"
                 size_hint_y: 1
 
     # horizontal container inside the vertical container
@@ -234,3 +242,6 @@
         text: "DEL" # TODO make backspace symbol work
         size_hint_x: 1.0 / len(self.parent.children)
         on_release: self.parent.grid.enter_number(0)
+    Button:
+        text: "OK"
+        size_hint_x: 1.0 / len(self.parent.children)
