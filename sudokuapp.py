@@ -3,14 +3,15 @@
 
 # standard imports
 import json
+from os.path import join
 
 # kivy imports
 from kivy.app import App
 from kivy.config import Config
 from kivy.core.window import Window
-from kivy.properties import ObjectProperty
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
+from kivy.lang import Builder
+from kivy.storage.jsonstore import JsonStore
+from kivy.uix.screenmanager import ScreenManager, FadeTransition
 
 from sudokulib.screen import GameScreen, MenuScreen
 # needed by sudoku.kv
@@ -18,13 +19,6 @@ from sudokulib.grid import SudokuGrid
 
 
 STATEFILE = "state.json"
-
-class GameWidget(BoxLayout):
-    grid = ObjectProperty(None)
-
-    def __init__(self, **kwargs):
-        super(GameWidget, self).__init__(**kwargs)
-        self.__app_config = App.get_running_app().config
 
 
 class SudokuApp(App):
@@ -42,8 +36,6 @@ class SudokuApp(App):
         self.screens.add_widget(MenuScreen())
         self.screens.add_widget(GameScreen())
 
-        # self.sudoku_widget = SudokuWidget()
-        # self.statefilename = join(self.user_data_dir, STATEFILE)
         return self.screens
 
     def __on_keyboard_closed(self):
@@ -82,20 +74,27 @@ class SudokuApp(App):
         # default handler (required)
         pass
 
-    def __save_state(self):
-        pass
+    def save_state(self):
+        filename = join(self.user_data_dir, STATEFILE)
+        store = JsonStore(filename)
 
-    def on_pause(self):
         for name in self.screens.screen_names:
             screen = self.screens.get_screen(name)
-            screen.update_state(state)
+            screen.save_state(store)
+
+    def on_pause(self):
+        self.save_state()
         return True
 
     def on_stop(self):
-        # self.sudoku_widget.save_state(self.statefilename)
-        pass
+        self.save_state()
+
 
 if __name__ == '__main__':
+    Builder.load_file("kv/sudoku.kv")
+    Builder.load_file("kv/game.kv")
+    # Builder.load_file("kv/custom.kv")
+
     Config.set('graphics', 'width', '480')
     Config.set('graphics', 'height', '800')
 

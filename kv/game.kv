@@ -1,0 +1,108 @@
+<GameScreen>:
+    name: "game"
+
+    BoxLayout:
+        orientation: "vertical"
+        grid: grid
+        info_label: info_label
+
+        # Menu row
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: "50sp"
+
+            Label:
+                size_hint: (0.8, 1)
+                halign: 'left' # is ignored
+                text: "Sudoku"
+
+            # Help Dropdown:
+            BoxLayout:
+                size_hint_x: 0.2
+
+                Button:
+                    id: help_button
+                    # size_hint: (0.2, 1)
+                    text: "Help"
+                    on_release: help_dropdown.open(self)
+                    size_hint_y: None
+                    height: self.parent.height
+
+                DropDown:
+                    id: help_dropdown
+                    on_parent: self.dismiss()
+
+                    Button:
+                        font_size: "9sp"
+                        text: "* 2 3\n4 5 6\n7 8 9"
+                        size_hint_y: None
+                        height: help_button.height
+                        on_release: grid.auto_candidates(), help_dropdown.select(self)
+
+                    Button:
+                        text: "Solve\nfield"
+                        size_hint_y: None
+                        height: help_button.height
+                        on_release: grid.solve_field(), help_dropdown.select(self)
+
+                    Button:
+                        text: "Solve\nall"
+                        size_hint_y: None
+                        height: help_button.height
+                        on_release: grid.solve(), help_dropdown.select(self)
+
+            # Settings button
+            Button:
+                size_hint_x: 0.2
+                text: "Settings"
+                halign: "center"
+                on_press: app.open_settings()
+
+            BoxLayout:
+                size_hint_x: 0.2
+
+                Button:
+                    id: menu_button
+                    text: "Menu"
+                    on_press: app.screens.current = "menu"
+                    size_hint_y: 1
+
+        # horizontal container inside the vertical container
+        BoxLayout:
+            id: grid_container
+            orientation: "horizontal"
+            size_hint_y: 1
+
+            # Padding (left)
+            Padding
+
+            SudokuGrid:
+                id: grid
+                id_label: info_label
+                pos: grid_container.pos
+                size_hint: (None, None)
+                width: min(grid_container.size)
+                height: min(grid_container.size)
+
+            # Padding (right)
+            Padding
+
+
+        # Slider:
+            # min: -1
+            # max: 0
+            # value: 0
+            # step: 1
+            # size_hint: (1, 0.2)
+
+        NumberInput:
+            size_hint_y: None
+            height: "50sp"
+            grid: grid
+
+        Label:
+            size_hint_y: None
+            height: "25sp"
+            id: info_label
+            # text: "Hint: double tap a field to edit candidates."

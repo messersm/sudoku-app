@@ -59,30 +59,5 @@ class GameScreen(BaseScreen):
         if input is not None:
             self.grid.enter_number(input)
 
-class MenuScreen(Screen):
+class MenuScreen(BaseScreen):
     pass
-
-class SudokuWidget(BoxLayout):
-    grid = ObjectProperty(None)
-    menu = ObjectProperty(None)
-    info_label = ObjectProperty(None)
-
-    def __init__(self, **kwargs):
-        super(SudokuWidget, self).__init__(**kwargs)
-
-        # Add hardware keyboard support
-
-
-        self.KEYS = {}
-        for i in range(10):
-            self.KEYS["%d" % i] = i
-            self.KEYS["numpad%d" % i] = i
-
-        self.KEYS["backspace"] = 0
-        self.KEYS["delete"] = 0
-
-    def __on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        pass
-
-    def handle_button_input(self, btn, text):
-        pass
