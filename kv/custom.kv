@@ -13,29 +13,34 @@
             height: "50sp"
 
             Label:
-                size_hint: (0.8, 1)
+                size_hint: (0.7, 1)
                 halign: 'left' # is ignored
                 text: "Sudoku"
 
             # Check
             Button:
-                size_hint_x: 0.2
+                size_hint_x: 0.1
                 text: "Done"
                 halign: "center"
                 on_press: customscreen.check_grid()
 
+            # Settings button
             Button:
-                size_hint_x: 0.2
+                size_hint_x: 0.1
+                text: "Settings"
+                halign: "center"
+                on_press: app.open_settings()
+
+            Button:
+                size_hint_x: 0.1
                 text: "Game"
                 halign: "center"
                 on_press: app.screens.current = "game"
 
-            # Settings button
-            Button:
-                size_hint_x: 0.2
-                text: "Settings"
-                halign: "center"
-                on_press: app.open_settings()
+        TextInput:
+            hint_text: "Enter Sudoku code here"
+            size_hint_y: None
+            height: "50sp"
 
         # horizontal container inside the vertical container
         BoxLayout:

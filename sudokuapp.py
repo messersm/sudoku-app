@@ -40,8 +40,8 @@ class SudokuApp(App):
         return self.screens
 
     def __on_keyboard_closed(self):
-        self.__keyboard.unbind(on_key_down=self.__on_keyboard_down)
-        self.__keyboard = None
+        self.keyboard.unbind(on_key_down=self.on_keyboard)
+        self.keyboard = None
 
     def __read_default_settings(self):
         defaults = {}
