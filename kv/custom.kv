@@ -1,6 +1,6 @@
-<CustomScreen>:
-    name: "game"
-    id: gamescreen
+<GameScreen>:
+    name: "custom"
+    id: customscreen
 
     BoxLayout:
         orientation: "vertical"
@@ -22,7 +22,7 @@
                 size_hint_x: 0.2
                 text: "Check"
                 halign: "center"
-                on_press: gamescreen.check_grid()
+                on_press: customscreen.check_grid()
 
             # Settings button
             Button:

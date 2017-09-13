@@ -13,7 +13,7 @@ from kivy.lang import Builder
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import ScreenManager, FadeTransition
 
-from sudokulib.screen import GameScreen, MenuScreen
+from sudokulib.screen import CustomScreen, GameScreen, MenuScreen
 # needed by sudoku.kv
 from sudokulib.grid import SudokuGrid
 
@@ -26,15 +26,16 @@ class SudokuApp(App):
     __events__.append('on_settings_change')
 
     def build(self):
-        self.use_kivy_settings = False
+        # self.use_kivy_settings = False
 
         self.keyboard = Window.request_keyboard(
-            self.__on_keyboard_closed, self, 'text')
+            self.__on_keyboard_closed, self.root, 'text')
         self.keyboard.bind(on_key_down=self.on_keyboard)
 
         self.screens = ScreenManager(transition=FadeTransition())
         self.screens.add_widget(MenuScreen())
         self.screens.add_widget(GameScreen())
+        self.screens.add_widget(CustomScreen())
 
         return self.screens
 
@@ -57,6 +58,8 @@ class SudokuApp(App):
         return defaults
 
     def build_config(self, config):
+        super(SudokuApp, self).build_config(config)
+
         defaults = self.__read_default_settings()
         for section, section_defaults in defaults.items():
             config.setdefaults(section, section_defaults)
@@ -93,9 +96,9 @@ class SudokuApp(App):
 if __name__ == '__main__':
     Builder.load_file("kv/sudoku.kv")
     Builder.load_file("kv/game.kv")
-    # Builder.load_file("kv/custom.kv")
+    Builder.load_file("kv/custom.kv")
 
-    Config.set('graphics', 'width', '480')
-    Config.set('graphics', 'height', '800')
+    Config.set('graphics', 'width', '1280')
+    Config.set('graphics', 'height', '720')
 
     SudokuApp().run()
