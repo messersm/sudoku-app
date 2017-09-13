@@ -26,14 +26,14 @@ class SudokuApp(App):
     __events__.append('on_settings_change')
 
     def build(self):
-        # self.use_kivy_settings = False
+        self.use_kivy_settings = False
 
         self.keyboard = Window.request_keyboard(
             self.__on_keyboard_closed, self.root, 'text')
         self.keyboard.bind(on_key_down=self.on_keyboard)
 
         self.screens = ScreenManager(transition=FadeTransition())
-        self.screens.add_widget(MenuScreen())
+        # self.screens.add_widget(MenuScreen())
         self.screens.add_widget(GameScreen())
         self.screens.add_widget(CustomScreen())
 

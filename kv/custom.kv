@@ -1,4 +1,4 @@
-<GameScreen>:
+<CustomScreen>:
     name: "custom"
     id: customscreen
 
@@ -20,9 +20,15 @@
             # Check
             Button:
                 size_hint_x: 0.2
-                text: "Check"
+                text: "Done"
                 halign: "center"
                 on_press: customscreen.check_grid()
+
+            Button:
+                size_hint_x: 0.2
+                text: "Game"
+                halign: "center"
+                on_press: app.screens.current = "game"
 
             # Settings button
             Button:
@@ -30,15 +36,6 @@
                 text: "Settings"
                 halign: "center"
                 on_press: app.open_settings()
-
-            BoxLayout:
-                size_hint_x: 0.2
-
-                Button:
-                    id: menu_button
-                    text: "Menu"
-                    on_press: app.screens.current = "menu"
-                    size_hint_y: 1
 
         # horizontal container inside the vertical container
         BoxLayout:
