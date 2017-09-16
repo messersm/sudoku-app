@@ -165,6 +165,43 @@ class Sudoku(object):
             rows.append(column_sep.join(column))
         return row_sep.join(rows)
 
+    def to_full_str(self):
+        s = self.to_str(column_sep='', row_sep='', empty='0')
+
+        candidates = []
+
+        for y in range(9):
+            for x in range(9):
+                cand = self.candidates.get((x, y), None)
+                if not cand:
+                    candidates.append('')
+                else:
+                    candidates.append("".join([str(c) for c in cand]))
+
+        s += '|' + ".".join(candidates)
+        return s
+
+    @classmethod
+    def from_full_str(cls, s):
+        s, c_str = s.split('|', 1)
+        sudoku = cls.from_str(s)
+
+        c_str = c_str.split('.')
+
+        x = 0
+        y = 0
+
+        for c in c_str:
+            sudoku.candidates[x, y] = [int(item) for item in c]
+            x += 1
+            if x == 9:
+                x = 0
+                y += 1
+            if y == 9:
+                break
+
+        return sudoku
+
     def to_int(self):
         s = self.to_str(column_sep='', row_sep='', empty='0')
         return int(s)

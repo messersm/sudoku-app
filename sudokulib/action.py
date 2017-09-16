@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from collections import namedtuple
+
 from kivy.app import App
 from kivy.event import EventDispatcher
 from kivy.core.window import Window
 
-
-ACTIONS = {
+KEYBOARD_ACTIONS = {
     ("numpad0", ()): "0",
     ('numpad1', ()): "1",
     ('numpad2', ()): "2",
@@ -40,6 +41,18 @@ ACTIONS = {
 }
 
 
+BaseAction = namedtuple('BaseAction', ['name', 'type', 'pos'])
+
+
+class Action(BaseAction):
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.name == other
+
+    def __int__(self):
+        return int(self.name)
+
+
 class ActionManager(EventDispatcher):
     __events__ = ('on_action', )
 
@@ -59,9 +72,9 @@ class ActionManager(EventDispatcher):
     def on_keyboard(self, keyboard, keycode, text, modifiers):
         keyname = keycode[1]
 
-        action = ACTIONS.get((keyname, tuple(modifiers)), None)
-        if action:
-            self.dispatch('on_action', action)
+        name = KEYBOARD_ACTIONS.get((keyname, tuple(modifiers)), None)
+        if name:
+            self.dispatch('on_action', Action(name, 'keyboard', None))
 
     def on_action(self, action):
         """default handler (required)"""

@@ -43,8 +43,6 @@
                 halign: "center"
                 on_press: app.screens.current = "custom"
 
-        SudokuGrid
-
         # horizontal container inside the vertical container
         BoxLayout:
             id: grid_container
@@ -56,6 +54,7 @@
 
             SudokuGrid:
                 id: grid
+                control: gamescreen
                 pos: grid_container.pos
                 size_hint: (None, None)
                 width: min(grid_container.size)

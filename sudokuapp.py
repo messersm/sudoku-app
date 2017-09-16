@@ -64,10 +64,17 @@ class SudokuApp(App):
     def on_config_change(self, config, section, key, value):
         self.dispatch('on_settings_change', section, key, value)
 
-
     def on_settings_change(self, section, key, value):
         # default handler (required)
         pass
+
+    def restore_state(self):
+        filename = join(self.user_data_dir, STATEFILE)
+        store = JsonStore(filename)
+
+        for name in self.screens.screen_names:
+            screen = self.screens.get_screen(name)
+            screen.restore_state(store)
 
     def save_state(self):
         filename = join(self.user_data_dir, STATEFILE)
@@ -76,6 +83,9 @@ class SudokuApp(App):
         for name in self.screens.screen_names:
             screen = self.screens.get_screen(name)
             screen.save_state(store)
+
+    def on_start(self):
+        self.restore_state()
 
     def on_pause(self):
         self.save_state()
