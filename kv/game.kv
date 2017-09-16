@@ -1,10 +1,10 @@
 <GameScreen>:
     name: "game"
     id: gamescreen
+    grid: grid
 
     BoxLayout:
         orientation: "vertical"
-        grid: grid
 
         # Menu row
         BoxLayout:
@@ -42,6 +42,8 @@
                 text: "Custom"
                 halign: "center"
                 on_press: app.screens.current = "custom"
+
+        SudokuGrid
 
         # horizontal container inside the vertical container
         BoxLayout:

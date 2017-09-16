@@ -8,11 +8,11 @@ from os.path import join
 # kivy imports
 from kivy.app import App
 from kivy.config import Config
-from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import ScreenManager, FadeTransition
 
+from sudokulib.action import ActionManager
 from sudokulib.screen import CustomScreen, GameScreen, MenuScreen
 # needed by sudoku.kv
 from sudokulib.grid import SudokuGrid
@@ -28,9 +28,7 @@ class SudokuApp(App):
     def build(self):
         self.use_kivy_settings = False
 
-        self.keyboard = Window.request_keyboard(
-            self.__on_keyboard_closed, self.root, 'text')
-        self.keyboard.bind(on_key_down=self.on_keyboard)
+        self.actions = ActionManager()
 
         self.screens = ScreenManager(transition=FadeTransition())
         # self.screens.add_widget(MenuScreen())
@@ -38,10 +36,6 @@ class SudokuApp(App):
         self.screens.add_widget(CustomScreen())
 
         return self.screens
-
-    def __on_keyboard_closed(self):
-        self.keyboard.unbind(on_key_down=self.on_keyboard)
-        self.keyboard = None
 
     def __read_default_settings(self):
         defaults = {}
@@ -70,8 +64,6 @@ class SudokuApp(App):
     def on_config_change(self, config, section, key, value):
         self.dispatch('on_settings_change', section, key, value)
 
-    def on_keyboard(self, keyboard, keycode, text, modifiers):
-        pass
 
     def on_settings_change(self, section, key, value):
         # default handler (required)

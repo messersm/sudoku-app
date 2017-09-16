@@ -12,13 +12,18 @@ class BaseScreen(Screen):
         super(BaseScreen, self).__init__(**kwargs)
 
         app = App.get_running_app()
+        self.screens = app.screens
         app.bind(on_settings_change=self.on_settings_change)
-        app.keyboard.bind(on_key_down=self.on_keyboard)
+        app.actions.bind(on_action=self.__on_action)
 
     def on_settings_change(self, app, section, key, value):
         pass
 
-    def on_keyboard(self, keyboard, keycode, text, modifiers):
+    def __on_action(self, manager, action):
+        if self.screens.current == self.name:
+            self.on_action(action)
+
+    def on_action(self, action):
         pass
 
     def save_state(self, state):
@@ -31,38 +36,12 @@ class BaseScreen(Screen):
 
 
 class GameScreen(BaseScreen):
-    KEYS = {
-        "numpad0": "0",
-        "numpad1": "1",
-        "numpad2": "2",
-        "numpad3": "3",
-        "numpad4": "4",
-        "numpad5": "5",
-        "numpad6": "6",
-        "numpad7": "7",
-        "numpad8": "8",
-        "numpad9": "9",
-        "1": "1",
-        "2": "2",
-        "3": "3",
-        "4": "4",
-        "5": "5",
-        "6": "6",
-        "7": "7",
-        "8": "8",
-        "9": "9",
-        "backspace": "0",
-        "delete": "0",
-        "enter": "confirm"
-    }
-
     grid = ObjectProperty(None)
+    NUMBERS = [str(i) for i in range(10)]
 
-    def on_keyboard(self, keyboard, keycode, text, modifiers):
-        keyname = keycode[1]
-        input = self.KEYS.get(keyname, None)
-        if input is not None:
-            self.grid.enter_number(input)
+    def on_action(self, action):
+        if action in self.NUMBERS:
+            self.grid.enter_number(int(action))
 
 
 class MenuScreen(BaseScreen):
