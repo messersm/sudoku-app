@@ -16,6 +16,7 @@ ACTIONS = {
     ('numpad7', ()): "7",
     ('numpad8', ()): "8",
     ('numpad9', ()): "9",
+
     ('0', ()): "0",
     ('1', ()): "1",
     ('2', ()): "2",
@@ -26,10 +27,16 @@ ACTIONS = {
     ('7', ()): "7",
     ('8', ()): "8",
     ('9', ()): "9",
+
     ('backspace', ()): "delete",
     ('delete', ()): "delete",
     ('numpadenter', ()): "confirm",
     ('enter', ()): "confirm",
+
+    ('right', ()): "next_col",
+    ('left', ()): "prev_col",
+    ('down', ()): "next_row",
+    ('up', ()): 'prev_row',
 }
 
 
