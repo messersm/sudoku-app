@@ -84,6 +84,19 @@ class GameScreen(GridScreen):
     # stack = ListProperty()
     NUMBERS = [str(i) for i in range(10)]
 
+    def on_field_set(self, grid, field, value):
+        super(GameScreen, self).on_field_set(grid, field, value)
+
+        if SudokuAnalyzer.is_complete(self.sudoku):
+
+            winpopup = CallbackPopup(
+                title="Sudoku complete",
+                text="Congratulations, you have won!",
+                callbacks=[
+                    ("Back", lambda: None),
+                    ("New Sudoku", self.new_game)])
+            winpopup.open()
+
     def on_action(self, action):
         if action in self.NUMBERS:
             self.grid.toggle_selected_candidate(int(action))
@@ -120,7 +133,7 @@ class GameScreen(GridScreen):
         self.solution = solve(self.sudoku, inplace=False)
         self.grid.sync(self.sudoku)
         self.grid.lock_filled_fields(self.orig)
-
+        self.grid.select(None)
 
 class MenuScreen(BaseScreen):
     pass
