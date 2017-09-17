@@ -13,11 +13,11 @@ BACKGROUND_COLORS = {
 OPTIONAL_HIGHLIGHT_COLORS = {
     "conflicts": (1, (1, 0, 0, 1)),
     "incorrect": (2, (1, 0.4, 0.4, 1)),
-    "surrounding": (3, (0.7, 0.7, 1, 0.5)),
+    "surrounding": (3, (0.7, 0.7, 1, 0.7)),
 }
 
 HIGHLIGHT_COLORS = {
-    "selected": (0, (0.5, 0.5, 1, 0.7)),
+    "selected": (0, (0.5, 0.5, 1, 0.9)),
     "default": (4, (1, 1, 1, 0))
 }
 
@@ -143,6 +143,9 @@ class Field(Label):
 
     @content.setter
     def content(self, value):
+        if self.__locked:
+            return
+
         if value is None:
             value = 0
 

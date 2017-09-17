@@ -116,6 +116,7 @@ class SudokuGrid(GridLayout):
         for (x, y) in coords:
             item = sudoku[x, y]
             field = self.fields[(x, y)]
+            field.lock(False)
 
             if not item:
                 candidates = sudoku.candidates.get((x, y), None)
