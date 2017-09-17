@@ -96,6 +96,10 @@ class SudokuGrid(GridLayout):
         if self.selected_field:
             self.selected_field.enter(number)
 
+    def toggle_selected_candidate(self, number):
+        if self.selected_field:
+            self.selected_field.toggle_candidate(number)
+
     def lock_filled_fields(self, sudoku):
         """Lock every filled field in sudoku and unlock everything else."""
         for x in range(9):

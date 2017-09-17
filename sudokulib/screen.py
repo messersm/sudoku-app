@@ -22,6 +22,7 @@ class BaseScreen(Screen):
         self.screens = app.screens
         app.bind(on_settings_change=self.on_settings_change)
         app.actions.bind(on_action=self.__on_action)
+        self.config = app.config
 
     def on_settings_change(self, app, section, key, value):
         pass
@@ -44,17 +45,33 @@ class BaseScreen(Screen):
 
 class GameScreen(BaseScreen):
     grid = ObjectProperty(None)
-    slider = ObjectProperty(None)
-    stack = ListProperty()
+    # slider = ObjectProperty(None)
+    # stack = ListProperty()
     NUMBERS = [str(i) for i in range(10)]
 
     def __init__(self, **kwargs):
         super(GameScreen, self).__init__(**kwargs)
-        self.__stack_index = 0
+        self.grid.bind(on_field_select=self.on_field_select)
+        self.grid.bind(on_field_set=self.on_field_set)
+        self.sudoku = None
+        self.orig = None
+        self.solution = None
 
-    @property
-    def sudoku(self):
-        return self.stack[self.__stack_index]
+    def on_field_set(self, grid, field, value):
+        if isinstance(value, list):
+            self.sudoku.candidates[field.coords] = value
+            self.sudoku[field.coords] = 0
+        else:
+            self.sudoku.candidates[field.coords] = None
+            self.sudoku[field.coords] = value
+
+    def on_field_select(self, grid, old, new):
+        if old:
+            for coord in surrounding_coords(old.coords, include=False):
+                self.grid.fields[coord].remove_highlight("surrounding")
+        if new:
+            for coord in surrounding_coords(new.coords, include=False):
+                self.grid.fields[coord].add_highlight("surrounding")
 
     def on_action(self, action):
         if action in self.NUMBERS:
@@ -62,34 +79,34 @@ class GameScreen(BaseScreen):
         elif action == "confirm":
             self.grid.confirm_selected()
         elif action == "delete":
-            self.grid.delete_selected()
+            self.grid.enter_selected(0)
+        elif action in ("next_field", "prev_field", "next_row", "prev_row"):
+            self.grid.select(action)
         else:
             Logger.info("GameScreen: Unhandled action: %s" % action)
 
     def save_state(self, store):
-        store.put("game", stack=[sud.to_full_str() for sud in self.stack])
+        store.put(
+            "game",
+            orig=self.orig.to_full_str(),
+            sudoku=self.sudoku.to_full_str())
 
     def restore_state(self, store):
         try:
-            stack = store.get("game")["stack"]
-        except KeyError:
-            stack = []
-
-        if stack:
-            for s in stack:
-                self.stack.append(Sudoku.from_full_str(s))
+            self.orig = Sudoku.from_full_str(store.get("game")["orig"])
+            self.sudoku = Sudoku.from_full_str(store.get("game")["sudoku"])
             self.__prepare_game()
-        else:
+        except KeyError:
             self.new_game()
 
     def __prepare_game(self):
-        self.__stack_index = len(self.stack) - 1
         self.solution = solve(self.sudoku, inplace=False)
         self.grid.sync(self.sudoku)
-        self.grid.lock_filled_fields(self.stack[0])
+        self.grid.lock_filled_fields(self.orig)
 
     def new_game(self):
-        self.stack = [SudokuGenerator.create()]
+        self.orig = SudokuGenerator.create()
+        self.sudoku = self.orig.copy()
         self.__prepare_game()
 
 class MenuScreen(BaseScreen):
@@ -124,14 +141,17 @@ class CustomScreen(BaseScreen):
             self.sudoku.candidates[field.coords] = None
             self.sudoku[field.coords] = value
 
+        if SudokuAnalyzer.find_conflicts(self.sudoku, field.coords):
+            field.add_highlight("conflicts")
+        else:
+            field.remove_highlight("conflicts")
+
     def on_field_select(self, grid, old, new):
-        # pass
-        return
         if old:
-            for coord in surrounding_coords(old, include=False):
+            for coord in surrounding_coords(old.coords, include=False):
                 self.grid.fields[coord].remove_highlight("surrounding")
         if new:
-            for coord in surrounding_coords(new, include=False):
+            for coord in surrounding_coords(new.coords, include=False):
                 self.grid.fields[coord].add_highlight("surrounding")
 
     def on_action(self, action, **kwargs):

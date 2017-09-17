@@ -33,7 +33,7 @@ class SudokuApp(App):
 
         self.screens = ScreenManager(transition=FadeTransition())
         # self.screens.add_widget(MenuScreen())
-        # self.screens.add_widget(GameScreen())
+        self.screens.add_widget(GameScreen())
         self.screens.add_widget(CustomScreen())
 
         return self.screens
