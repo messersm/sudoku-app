@@ -54,8 +54,8 @@ class ActionManager(EventDispatcher):
         self.keyboard.bind(on_key_down=self.on_keyboard)
 
     def __on_keyboard_closed(self):
-        self.keyboard.unbind(on_key_down=self.on_keyboard)
-        self.keyboard = None
+        # Not closing the keyboard - we still need it.
+        pass
 
     def on_keyboard(self, keyboard, keycode, text, modifiers):
         keyname = keycode[1]
