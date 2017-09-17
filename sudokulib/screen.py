@@ -102,6 +102,7 @@ class GameScreen(GridScreen):
             self.grid.toggle_selected_candidate(int(action))
         elif action == "confirm":
             self.grid.confirm_selected()
+            self.grid.select(None)
         elif action == "delete":
             self.grid.enter_selected(0)
         elif action in ("next_field", "prev_field", "next_row", "prev_row"):
@@ -159,6 +160,7 @@ class CustomScreen(GridScreen):
             self.grid.enter_selected(0)
         elif action == "confirm":
             self.grid.confirm_selected()
+            self.grid.select(None)
             # self.grid.index += 1
         elif action in ("next_field", "prev_field", "next_row", "prev_row"):
             self.grid.select(action)
@@ -194,3 +196,6 @@ class CustomScreen(GridScreen):
             self.sudoku = Sudoku()
 
         self.grid.sync(self.sudoku)
+
+# TODO:
+#  - fix red fields, that are locked on load

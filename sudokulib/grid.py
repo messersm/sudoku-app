@@ -71,13 +71,14 @@ class SudokuGrid(GridLayout):
             self.index += 9
         elif obj == "prev_row":
             self.index -= 9
+        elif obj is None:
+            self.on_select(None)
 
     def on_select(self, field):
         self.dispatch('on_field_select', self.selected_field, field)
         if self.selected_field:
             self.selected_field.select(False)
         self.selected_field = field
-        Logger.debug("SudokuGrid: Field at %s selected." % str(field.coords))
 
     def on_field_select(self, old, new):
         """default handler (required)"""
