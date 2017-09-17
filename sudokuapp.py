@@ -9,6 +9,7 @@ from os.path import join
 from kivy.app import App
 from kivy.config import Config
 from kivy.lang import Builder
+from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import ScreenManager, FadeTransition
 
@@ -26,13 +27,13 @@ class SudokuApp(App):
     __events__.append('on_settings_change')
 
     def build(self):
-        self.use_kivy_settings = False
+        self.use_kivy_settings = True
 
         self.actions = ActionManager()
 
         self.screens = ScreenManager(transition=FadeTransition())
         # self.screens.add_widget(MenuScreen())
-        self.screens.add_widget(GameScreen())
+        # self.screens.add_widget(GameScreen())
         self.screens.add_widget(CustomScreen())
 
         return self.screens
@@ -71,6 +72,7 @@ class SudokuApp(App):
     def restore_state(self):
         filename = join(self.user_data_dir, STATEFILE)
         store = JsonStore(filename)
+        Logger.info("SudokuApp: Restoring state from %s." % filename)
 
         for name in self.screens.screen_names:
             screen = self.screens.get_screen(name)

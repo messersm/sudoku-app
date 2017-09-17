@@ -34,23 +34,11 @@ KEYBOARD_ACTIONS = {
     ('numpadenter', ()): "confirm",
     ('enter', ()): "confirm",
 
-    ('right', ()): "next_col",
-    ('left', ()): "prev_col",
+    ('right', ()): "next_field",
+    ('left', ()): "prev_field",
     ('down', ()): "next_row",
     ('up', ()): 'prev_row',
 }
-
-
-BaseAction = namedtuple('BaseAction', ['name', 'type', 'pos'])
-
-
-class Action(BaseAction):
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.name == other
-
-    def __int__(self):
-        return int(self.name)
 
 
 class ActionManager(EventDispatcher):
@@ -74,7 +62,7 @@ class ActionManager(EventDispatcher):
 
         name = KEYBOARD_ACTIONS.get((keyname, tuple(modifiers)), None)
         if name:
-            self.dispatch('on_action', Action(name, 'keyboard', None))
+            self.dispatch('on_action', name)
 
     def on_action(self, action):
         """default handler (required)"""

@@ -103,10 +103,11 @@
 
 <NumberButton@Button>:
     size_hint: (1.0 / len(self.parent.children), 1)
-    on_release: self.parent.grid.enter_number(int(self.text))
+    on_release: self.parent.handler.on_action(self.text)
 
 <NumberInput@BoxLayout>:
     orientation: "horizontal"
+    handler: self.parent
 
     NumberButton:
         text: "1"
@@ -127,9 +128,10 @@
     NumberButton:
         text: "9"
     Button:
-        text: "DEL" # TODO make backspace symbol work
+        text: "DEL" # "⌫" # TODO make backspace symbol work (missing font)
         size_hint_x: 1.0 / len(self.parent.children)
-        on_release: self.parent.grid.enter_number(0)
+        on_release: self.parent.handler.on_action("delete")
     Button:
-        text: "OK"
+        text: "OK" # "⏎"
         size_hint_x: 1.0 / len(self.parent.children)
+        on_release: self.parent.handler.on_action("confirm")

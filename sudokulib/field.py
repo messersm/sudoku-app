@@ -1,12 +1,6 @@
 from kivy.app import App
 from kivy.uix.label import Label
-from kivy.properties import ListProperty, NumericProperty
-
-# local imports
-from sudokutools.analyze import SudokuAnalyzer
-from sudokutools.coord import surrounding_coords
-from sudokutools.sudoku import VALID_NUMBERS
-
+from kivy.properties import ListProperty, NumericProperty, ObjectProperty
 
 DEFAULT_FONT_SIZE = "27sp"
 CANDIDATE_FONT_SIZE = "10sp"
@@ -30,6 +24,8 @@ HIGHLIGHT_COLORS = {
 HIGHLIGHT_COLORS.update(OPTIONAL_HIGHLIGHT_COLORS)
 
 class Field(Label):
+    __events__ = ('on_select', )
+
     """Represents on visible field in the sudoku grid.
     """
     background_color = ListProperty(BACKGROUND_COLORS["default"][1])
@@ -90,7 +86,7 @@ class Field(Label):
         s = ""
 
         try:
-            for n in VALID_NUMBERS:
+            for n in range(1, 10):
                 if n in self.content:
                     s += str(n)
                 else:
@@ -147,22 +143,14 @@ class Field(Label):
 
     @content.setter
     def content(self, value):
+        if value is None:
+            value = 0
+
         self.__content = value
-        sudoku = self.parent.sudoku
 
-        if value is None or value == 0:
-            sudoku[self.coords] = 0
-            sudoku.candidates[self.coords] = None
-            self.__show_number()
-
-        elif isinstance(value, list):
-            sudoku[self.coords] = 0
-            sudoku.candidates[self.coords] = value
+        if isinstance(value, list):
             self.__show_candidates()
-            
-        elif isinstance(value, int):
-            sudoku[self.coords] = value
-            sudoku.candidates[self.coords] = None
+        else:
             self.__show_number()
 
     def lock(self, locked=True):
@@ -184,71 +172,32 @@ class Field(Label):
 
     def select(self, selected=True):
         if selected:
-            if not self.__selected:
-                self.parent.selected_field = self
-                self.add_highlight("selected")
-                for coord in surrounding_coords(self.coords, include=False):
-                    self.parent.fields[coord].add_highlight("surrounding")
+            self.dispatch("on_select")
+            self.add_highlight("selected")
         else:
-            if self.__selected:
-                self.remove_highlight("selected")
-                for coord in surrounding_coords(self.coords, include=False):
-                    self.parent.fields[coord].remove_highlight("surrounding")
+            self.remove_highlight("selected")
 
-                if SudokuAnalyzer.find_conflicts(self.parent.sudoku, self.coords):
-                    self.add_highlight("conflicts")
-                else:
-                    # Yep, that's ugly.
-                    while "conflicts" in self.__highlights:
-                        self.remove_highlight("conflicts")
+    def on_select(self):
+        pass
 
-                value = self.parent.sudoku[self.coords]
-                solution_value = self.parent.solution[self.coords]
-                if value != 0 and value != solution_value:
-                    self.add_highlight("incorrect")
-                else:
-                    while "incorrect" in self.__highlights:
-                        self.remove_highlight("incorrect")
+    def enter(self, number):
+        self.content = number
 
-                # check, if the sudoku is complete
-                self.parent.check_win()
-
-        self.__selected = selected
-
-    def input(self, inp):
-        if self.__selected:
-            # clear
-            if inp == 0:
-                self.content = 0
-            # candidate input mode
-            elif isinstance(self.content, list):
-                candidates = self.content
-                if inp in candidates:
-                    candidates.remove(inp)
-                else:
-                    candidates.append(inp)
-
-                self.content = candidates
-            # number input mode
+    def toggle_candidate(self, number):
+        if isinstance(self.content, list):
+            candidates = self.content
+            if number in candidates:
+                candidates.remove(number)
             else:
-                self.content = [inp]
+                candidates.append(number)
+
+            self.content = candidates
+        else:
+            self.content = [number]
 
     def on_touch_down(self, touch):
-        # do nothing, when locked
-        if self.__locked:
-            return
-
         if self.collide_point(*touch.pos):
-            if self.selected and touch.is_double_tap:
-                if isinstance(self.content, list) and len(self.content) == 1:
-                    self.content = self.content[0]
-                    self.select(False)
-            else:
-                self.select(True)
-
-        # only unselect, if the grid is touched.
-        elif self.parent.collide_point(*touch.pos):
-            self.select(False)
+            self.select()
 
     def on_settings_change(self, app, section, key, value):
         self.__update_highlight_color()

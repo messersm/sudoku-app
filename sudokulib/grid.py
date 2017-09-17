@@ -1,18 +1,19 @@
 # kivy imports
 from kivy.animation import Animation
+from kivy.logger import Logger
 from kivy.uix.gridlayout import GridLayout
-from kivy.properties import ObjectProperty
+from kivy.properties import NumericProperty, ObjectProperty
 
 # local imports
+from sudokutools.coord import surrounding_coords
 from sudokulib.field import Field, HIGHLIGHT_COLORS
-from sudokulib.popup import CallbackPopup
 
-from sudokutools.analyze import SudokuAnalyzer
-from sudokutools.solve import CalculateCandidates, solve
-from sudokutools.sudoku import VALID_NUMBERS, Sudoku
+VALID_NUMBERS = set([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
 
 class SudokuGrid(GridLayout):
+    __events__ = ('on_field_select',)
+
     control = ObjectProperty(None)
 
     def __init__(self, **kwargs):
@@ -25,80 +26,52 @@ class SudokuGrid(GridLayout):
         for y in range(9):
             for x in range(9):
                 field = Field(coords=(x, y))
+                field.bind(on_select=self.on_select)
                 self.add_widget(field)
                 self.fields[(x, y)] = field
 
     @property
-    def solution(self):
-        return self.control.solution
+    def index(self):
+        if not self.selected_field:
+            return 0
+        x, y = self.selected_field.coords
+        return x + y * 9
 
-    @property
-    def sudoku(self):
-        return self.control.sudoku
+    @index.setter
+    def index(self, value):
+        if value >= 81 or value < 0:
+            value %= 81
+        x, y = value % 9, value // 9
+        self.fields[(x, y)].select()
 
-    def play_win_animation(self, on_complete=None):
-        color1 = HIGHLIGHT_COLORS["selected"][1]
-        color2 = HIGHLIGHT_COLORS["default"][1]
+    def on_select(self, field):
+        self.dispatch('on_field_select', self.selected_field, field)
+        if self.selected_field:
+            self.selected_field.select(False)
+        self.selected_field = field
+        Logger.debug("SudokuGrid: Field at %s selected." % str(field.coords))
 
-        fields = [self.fields[(x, y)] for y in range(9) for x in range(9)]
-        last_field = fields.pop()
-
-        wait = 0
-        for field in fields:
-            anim = Animation(duration=wait)
-            anim += Animation(highlight_color=color1, duration=0.5)
-            anim += Animation(highlight_color=color2, duration=0.5)
-            anim.start(field)
-            wait += 0.05
-
-        last_anim = Animation(duration=wait)
-        last_anim += Animation(highlight_color=color1, duration=0.5)
-        last_anim += Animation(highlight_color=color2, duration=0.5)
-
-        last_anim.bind(on_complete=on_complete)
-        last_anim.start(last_field)
-
-    def display_win_popup(self):
-        winpopup = CallbackPopup(
-            title="Sudoku complete",
-            text="Congratulations, you have won!",
-            callbacks=[
-                ("Back", lambda: None),
-                ("New Sudoku", self.new_sudoku)])
-        winpopup.open()
+    def on_field_select(self, old, new):
+        """default handler (required)"""
+        pass
 
     def clear(self):
         for field in self.fields.values():
             if not field.locked:
                 field.content = None
 
-    def load(self, orig, sudoku=None):
-        for field in self.fields.values():
-            field.reset()
-
-        self.orig = orig
-        if not sudoku:
-            self.sudoku = orig.copy()
-        else:
-            self.sudoku = sudoku
-        self.solution = self.sudoku.copy()
-        solve(self.solution)
-
-        self.sudoku_won = SudokuAnalyzer.is_complete(self.sudoku)
-        self.lock_filled_fields()
-        self.sync_sudoku_to_gui()
-
-        # self.id_label.text = "id: %s" % self.sudoku.to_base62()
-
-    def enter_number(self, number):
+    def enter_selected(self, number):
         if self.selected_field:
-            self.selected_field.input(number)
+            self.selected_field.enter(number)
 
-    def lock_filled_fields(self, locked=True):
+    def lock_filled_fields(self, sudoku):
+        """Lock every filled field in sudoku and unlock everything else."""
         for x in range(9):
             for y in range(9):
-                if self.orig[x, y] in VALID_NUMBERS:
-                    self.fields[(x, y)].lock(locked)
+                if sudoku[x, y] in VALID_NUMBERS:
+                    self.fields[(x, y)].lock(True)
+                else:
+                    self.fields[(x, y)].lock(False)
 
     def sync(self, sudoku, coords=None):
         if not coords:
@@ -106,8 +79,10 @@ class SudokuGrid(GridLayout):
 
         for (x, y) in coords:
             item = sudoku[x, y]
+            field = self.fields[(x, y)]
+
             if not item:
                 candidates = sudoku.candidates.get((x, y), None)
-                self.fields[(x, y)].content = candidates
-            elif item in VALID_NUMBERS or item is None:
-                self.fields[(x, y)].content = item
+                field.content = candidates
+            elif item in VALID_NUMBERS:
+                field.content = item

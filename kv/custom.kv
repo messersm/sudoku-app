@@ -1,10 +1,10 @@
 <CustomScreen>:
     name: "custom"
     id: customscreen
+    grid: grid
 
     BoxLayout:
         orientation: "vertical"
-        grid: grid
 
         # Menu row
         BoxLayout:
@@ -72,4 +72,4 @@
         NumberInput:
             size_hint_y: None
             height: "50sp"
-            grid: grid
+            handler: customscreen

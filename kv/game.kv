@@ -28,7 +28,7 @@
                 size_hint_x: 0.1
                 text: "New"
                 halign: "center"
-                on_press: gamescreen.create_new_sudoku()
+                on_press: gamescreen.new_game()
 
             # Settings button
             Button:
@@ -63,15 +63,15 @@
             # Padding (right)
             Padding
 
-
-        # Slider:
-            # min: -1
-            # max: 0
-            # value: 0
-            # step: 1
-            # size_hint: (1, 0.2)
+        Slider:
+            min: 0
+            max: 0
+            value: 0
+            step: 1
+            size_hint_y: 0.1
 
         NumberInput:
+            handler: gamescreen
             size_hint_y: None
             height: "50sp"
             grid: grid
