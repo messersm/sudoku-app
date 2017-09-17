@@ -209,6 +209,8 @@ class Field(Label):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             self.select()
+            if touch.is_double_tap:
+                self.confirm()
 
     def on_settings_change(self, app, section, key, value):
         self.__update_highlight_color()

@@ -43,14 +43,13 @@ class BaseScreen(Screen):
         pass
 
 
-class GameScreen(BaseScreen):
+class GridScreen(BaseScreen):
+    """Represents a screen with a SudokuGrid"""
+
     grid = ObjectProperty(None)
-    # slider = ObjectProperty(None)
-    # stack = ListProperty()
-    NUMBERS = [str(i) for i in range(10)]
 
     def __init__(self, **kwargs):
-        super(GameScreen, self).__init__(**kwargs)
+        super(GridScreen, self).__init__(**kwargs)
         self.grid.bind(on_field_select=self.on_field_select)
         self.grid.bind(on_field_set=self.on_field_set)
         self.sudoku = None
@@ -77,6 +76,13 @@ class GameScreen(BaseScreen):
         if new:
             for coord in surrounding_coords(new.coords, include=False):
                 self.grid.fields[coord].add_highlight("surrounding")
+
+
+class GameScreen(GridScreen):
+    grid = ObjectProperty(None)
+    # slider = ObjectProperty(None)
+    # stack = ListProperty()
+    NUMBERS = [str(i) for i in range(10)]
 
     def on_action(self, action):
         if action in self.NUMBERS:
@@ -120,17 +126,9 @@ class MenuScreen(BaseScreen):
     pass
 
 
-class CustomScreen(BaseScreen):
-    grid = ObjectProperty(None)
+class CustomScreen(GridScreen):
     code_input = ObjectProperty(None)
-
     NUMBERS = [str(i) for i in range(10)]
-
-    def __init__(self, **kwargs):
-        super(CustomScreen, self).__init__(**kwargs)
-        self.grid.bind(on_field_select=self.on_field_select)
-        self.grid.bind(on_field_set=self.on_field_set)
-        self.sudoku = None
 
     def update_from_code_input(self):
         s = get_secret(self.code_input.text)
@@ -140,36 +138,15 @@ class CustomScreen(BaseScreen):
             self.sudoku = Sudoku.from_str(self.code_input.text)
         self.grid.sync(self.sudoku)
 
-    def on_field_set(self, grid, field, value):
-        if isinstance(value, list):
-            self.sudoku.candidates[field.coords] = value
-            self.sudoku[field.coords] = 0
-        else:
-            self.sudoku.candidates[field.coords] = None
-            self.sudoku[field.coords] = value
-
-        if SudokuAnalyzer.find_conflicts(self.sudoku, field.coords):
-            field.add_highlight("conflicts")
-        else:
-            field.remove_highlight("conflicts")
-
-    def on_field_select(self, grid, old, new):
-        if old:
-            for coord in surrounding_coords(old.coords, include=False):
-                self.grid.fields[coord].remove_highlight("surrounding")
-        if new:
-            for coord in surrounding_coords(new.coords, include=False):
-                self.grid.fields[coord].add_highlight("surrounding")
-
     def on_action(self, action, **kwargs):
         if action in self.NUMBERS:
             self.grid.enter_selected(int(action))
-            self.grid.index += 1
+            # self.grid.index += 1 <- make this an option?
         elif action == "delete":
             self.grid.enter_selected(0)
         elif action == "confirm":
             self.grid.confirm_selected()
-            self.grid.index += 1
+            # self.grid.index += 1
         elif action in ("next_field", "prev_field", "next_row", "prev_row"):
             self.grid.select(action)
         else:
