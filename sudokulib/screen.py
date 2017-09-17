@@ -116,14 +116,8 @@ class CustomScreen(BaseScreen):
         if action in self.NUMBERS:
             self.grid.enter_selected(int(action))
             self.grid.index += 1
-        elif action == "next_field":
-            self.grid.index += 1
-        elif action == "prev_field":
-            self.grid.index -= 1
-        elif action == "next_row":
-            self.grid.index += 9
-        elif action == "prev_row":
-            self.grid.index -= 9
+        elif action in ("next_field", "prev_field", "next_row", "prev_row"):
+            self.grid.select(action)
 
         else:
             Logger.info("CustomScreen: Unhandled action: %s" % action)

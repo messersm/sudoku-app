@@ -44,6 +44,26 @@ class SudokuGrid(GridLayout):
         x, y = value % 9, value // 9
         self.fields[(x, y)].select()
 
+    def select(self, obj):
+        if isinstance(obj, Field):
+            obj.select()
+        elif obj == "next_field":
+            x = self.index % 9
+            if x == 8:
+                self.index -= 8
+            else:
+                self.index += 1
+        elif obj == "prev_field":
+            x = self.index % 9
+            if x == 0:
+                self.index += 8
+            else:
+                self.index -= 1
+        elif obj == "next_row":
+            self.index += 9
+        elif obj == "prev_row":
+            self.index -= 9
+
     def on_select(self, field):
         self.dispatch('on_field_select', self.selected_field, field)
         if self.selected_field:
