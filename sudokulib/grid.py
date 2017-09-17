@@ -12,7 +12,7 @@ VALID_NUMBERS = set([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
 
 class SudokuGrid(GridLayout):
-    __events__ = ('on_field_select',)
+    __events__ = ('on_field_select', 'on_field_set')
 
     control = ObjectProperty(None)
 
@@ -27,8 +27,16 @@ class SudokuGrid(GridLayout):
             for x in range(9):
                 field = Field(coords=(x, y))
                 field.bind(on_select=self.on_select)
+                field.bind(on_set=self.on_set)
                 self.add_widget(field)
                 self.fields[(x, y)] = field
+
+    def on_set(self, field, value):
+        self.dispatch('on_field_set', field, value)
+
+    def on_field_set(self, field, value):
+        """default handler (required)"""
+        pass
 
     @property
     def index(self):

@@ -10,6 +10,7 @@ from sudokutools.generate import SudokuGenerator
 from sudokutools.solve import solve
 from sudokutools.sudoku import Sudoku
 
+from sudokulib.secret import get_secret
 
 class BaseScreen(Screen):
     def __init__(self, **kwargs):
@@ -102,12 +103,24 @@ class CustomScreen(BaseScreen):
     def __init__(self, **kwargs):
         super(CustomScreen, self).__init__(**kwargs)
         self.grid.bind(on_field_select=self.on_field_select)
-
+        self.grid.bind(on_field_set=self.on_field_set)
         self.sudoku = Sudoku()
 
     def update_from_code_input(self):
-        self.sudoku = Sudoku.from_str(self.code_input.text)
+        s = get_secret(self.code_input.text)
+        if s:
+            self.sudoku = Sudoku.from_str(s)
+        else:
+            self.sudoku = Sudoku.from_str(self.code_input.text)
         self.grid.sync(self.sudoku)
+
+    def on_field_set(self, grid, field, value):
+        if isinstance(value, list):
+            self.sudoku.candidates[field.coords] = value
+            self.sudoku[field.coords] = 0
+        else:
+            self.sudoku.candidates[field.coords] = None
+            self.sudoku[field.coords] = value
 
     def on_field_select(self, grid, old, new):
         # pass

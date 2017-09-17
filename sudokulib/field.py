@@ -24,7 +24,7 @@ HIGHLIGHT_COLORS = {
 HIGHLIGHT_COLORS.update(OPTIONAL_HIGHLIGHT_COLORS)
 
 class Field(Label):
-    __events__ = ('on_select', )
+    __events__ = ('on_select', 'on_set')
 
     """Represents on visible field in the sudoku grid.
     """
@@ -152,6 +152,12 @@ class Field(Label):
             self.__show_candidates()
         else:
             self.__show_number()
+
+        self.dispatch('on_set', value)
+
+    def on_set(self, value):
+        """default handler (required)"""
+        pass
 
     def lock(self, locked=True):
         self.__locked = locked
