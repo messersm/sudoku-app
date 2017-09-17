@@ -93,21 +93,23 @@ class GameScreen(BaseScreen):
 
     def restore_state(self, store):
         try:
-            self.orig = Sudoku.from_full_str(store.get("game")["orig"])
-            self.sudoku = Sudoku.from_full_str(store.get("game")["sudoku"])
-            self.__prepare_game()
+            orig = Sudoku.from_full_str(store.get("game")["orig"])
+            sudoku = Sudoku.from_full_str(store.get("game")["sudoku"])
+            self.new_game(orig, sudoku)
         except KeyError:
             self.new_game()
 
-    def __prepare_game(self):
+    def new_game(self, orig=None, sudoku=None):
+        if orig is None or sudoku is None:
+            self.orig = SudokuGenerator.create()
+            self.sudoku = self.orig.copy()
+        else:
+            self.orig = orig
+            self.sudoku = sudoku
         self.solution = solve(self.sudoku, inplace=False)
         self.grid.sync(self.sudoku)
         self.grid.lock_filled_fields(self.orig)
 
-    def new_game(self):
-        self.orig = SudokuGenerator.create()
-        self.sudoku = self.orig.copy()
-        self.__prepare_game()
 
 class MenuScreen(BaseScreen):
     pass
