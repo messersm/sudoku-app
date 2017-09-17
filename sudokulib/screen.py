@@ -65,6 +65,11 @@ class GameScreen(BaseScreen):
             self.sudoku.candidates[field.coords] = None
             self.sudoku[field.coords] = value
 
+        if SudokuAnalyzer.find_conflicts(self.sudoku, field.coords):
+            field.add_highlight("conflicts")
+        else:
+            field.remove_highlight("conflicts")
+
     def on_field_select(self, grid, old, new):
         if old:
             for coord in surrounding_coords(old.coords, include=False):
