@@ -2,6 +2,7 @@
     name: "custom"
     id: customscreen
     grid: grid
+    code_input: code_input
 
     BoxLayout:
         orientation: "vertical"
@@ -37,11 +38,6 @@
                 halign: "center"
                 on_press: app.screens.current = "game"
 
-        TextInput:
-            hint_text: "Enter Sudoku code here"
-            size_hint_y: None
-            height: "50sp"
-
         # horizontal container inside the vertical container
         BoxLayout:
             id: grid_container
@@ -61,13 +57,18 @@
             # Padding (right)
             Padding
 
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: 0.1
 
-        # Slider:
-            # min: -1
-            # max: 0
-            # value: 0
-            # step: 1
-            # size_hint: (1, 0.2)
+            TextInput:
+                id: code_input
+                hint_text: "Enter Sudoku code here"
+                size_hint_x: 0.9
+            Button:
+                text: "apply"
+                on_release: customscreen.update_from_code_input()
+                size_hint_x: 0.1
 
         NumberInput:
             size_hint_y: None

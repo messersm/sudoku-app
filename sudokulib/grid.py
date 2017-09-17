@@ -80,6 +80,10 @@ class SudokuGrid(GridLayout):
             if not field.locked:
                 field.content = None
 
+    def confirm_selected(self):
+        if self.selected_field:
+            self.selected_field.confirm()
+
     def enter_selected(self, number):
         if self.selected_field:
             self.selected_field.enter(number)

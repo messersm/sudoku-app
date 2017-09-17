@@ -183,6 +183,11 @@ class Field(Label):
     def enter(self, number):
         self.content = number
 
+    def confirm(self):
+        if isinstance(self.content, list):
+            if len(self.content) == 1:
+                self.content = self.content[0]
+
     def toggle_candidate(self, number):
         if isinstance(self.content, list):
             candidates = self.content

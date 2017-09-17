@@ -95,12 +95,19 @@ class MenuScreen(BaseScreen):
 
 class CustomScreen(BaseScreen):
     grid = ObjectProperty(None)
+    code_input = ObjectProperty(None)
 
     NUMBERS = [str(i) for i in range(10)]
 
     def __init__(self, **kwargs):
         super(CustomScreen, self).__init__(**kwargs)
         self.grid.bind(on_field_select=self.on_field_select)
+
+        self.sudoku = Sudoku()
+
+    def update_from_code_input(self):
+        self.sudoku = Sudoku.from_str(self.code_input.text)
+        self.grid.sync(self.sudoku)
 
     def on_field_select(self, grid, old, new):
         # pass
@@ -116,9 +123,13 @@ class CustomScreen(BaseScreen):
         if action in self.NUMBERS:
             self.grid.enter_selected(int(action))
             self.grid.index += 1
+        elif action == "delete":
+            self.grid.enter_selected(0)
+        elif action == "confirm":
+            self.grid.confirm_selected()
+            self.grid.index += 1
         elif action in ("next_field", "prev_field", "next_row", "prev_row"):
             self.grid.select(action)
-
         else:
             Logger.info("CustomScreen: Unhandled action: %s" % action)
 
