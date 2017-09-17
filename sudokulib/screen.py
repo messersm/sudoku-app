@@ -6,11 +6,13 @@ from kivy.uix.screenmanager import Screen
 
 # local imports
 from sudokutools.coord import surrounding_coords
+from sudokutools.analyze import SudokuAnalyzer
 from sudokutools.generate import SudokuGenerator
 from sudokutools.solve import solve
 from sudokutools.sudoku import Sudoku
 
 from sudokulib.secret import get_secret
+from sudokulib.popup import CallbackPopup
 
 class BaseScreen(Screen):
     def __init__(self, **kwargs):
@@ -104,7 +106,7 @@ class CustomScreen(BaseScreen):
         super(CustomScreen, self).__init__(**kwargs)
         self.grid.bind(on_field_select=self.on_field_select)
         self.grid.bind(on_field_set=self.on_field_set)
-        self.sudoku = Sudoku()
+        self.sudoku = None
 
     def update_from_code_input(self):
         s = get_secret(self.code_input.text)
@@ -146,8 +148,32 @@ class CustomScreen(BaseScreen):
         else:
             Logger.info("CustomScreen: Unhandled action: %s" % action)
 
-    def clear(self):
-        pass
-
     def play(self):
-        pass
+        unique = SudokuAnalyzer.is_unique(self.sudoku)
+        if unique is None:
+            popup = CallbackPopup(
+                title="Sudoku cannot be solved",
+                text="Your Sudoku cannot be solved.",
+                callbacks=[
+                    ("Too bad, let me fix that.", lambda: None)])
+            popup.open()
+        elif unique is False:
+            popup = CallbackPopup(
+                title="Sudoku is not unique",
+                text="Your Sudoku has multiple solutions.",
+                callbacks=[
+                    ("Too bad, let me fix that.", lambda: None)])
+            popup.open()
+        else:
+            print("Playing game!")
+
+    def save_state(self, store):
+        store.put("custom", sudoku=self.sudoku.to_full_str())
+
+    def restore_state(self, store):
+        try:
+            self.sudoku = Sudoku.from_full_str(store.get("custom")["sudoku"])
+        except KeyError:
+            self.sudoku = Sudoku()
+
+        self.grid.sync(self.sudoku)

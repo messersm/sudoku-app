@@ -10,7 +10,7 @@ class SudokuAnalyzer(object):
 
 
         >>> from sudokutools.sudoku import Sudoku
-        >>> from sudokutools.analyzer import SudokuAnalyzer
+        >>> from sudokutools.analyze import SudokuAnalyzer
         >>> sudoku1 = Sudoku.from_str("0505")
         >>> sudoku2 = Sudoku.from_str("123456789")
         >>> str(SudokuAnalyzer.is_unique(sudoku1))
