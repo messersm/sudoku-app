@@ -1,12 +1,9 @@
 # kivy imports
-from kivy.animation import Animation
-from kivy.logger import Logger
 from kivy.uix.gridlayout import GridLayout
-from kivy.properties import NumericProperty, ObjectProperty
+from kivy.properties import ObjectProperty
 
 # local imports
-from sudokutools.coord import surrounding_coords
-from sudokulib.field import Field, HIGHLIGHT_COLORS
+from sudokulib.field import Field
 
 VALID_NUMBERS = set([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
