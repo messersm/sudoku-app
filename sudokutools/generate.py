@@ -8,9 +8,12 @@ from random import choice, shuffle
 
 class SudokuGenerator(object):
     @classmethod
-    def create(cls, count=20):
+    def create(cls, count=25):
+
+        tries = 0
         while True:
-            sudoku = cls.seed(count=count)
+            tries += 1
+            sudoku = cls.intelligent_seed(count=count)
             sol1 = sudoku.copy()
             if not Bruteforce.call(sol1):
                 print("Found invalid sudoku - ignoring.")
@@ -35,6 +38,7 @@ class SudokuGenerator(object):
             len2 = len(sudoku)
             print("Minimized sudoku: %d -> %d" % (len1, len2))
 
+            print("Returning sudoku after %d tries." % tries)
             return sudoku
 
     @classmethod
@@ -68,5 +72,30 @@ class SudokuGenerator(object):
                 if SudokuAnalyzer.find_conflicts(sudoku, (x, y)):
                     sudoku[(x, y)] = 0
                 c += 1
+
+        return sudoku
+
+    @classmethod
+    def intelligent_seed(cls, count=20):
+
+        counts = [1] * len(VALID_NUMBERS)
+        print(counts)
+        while sum(counts) < count:
+            idx = choice(range(len(counts)))
+            counts[idx] += 1
+
+        print(counts)
+        sudoku = Sudoku()
+
+        for i, val in enumerate(VALID_NUMBERS):
+            c = 0
+            while c < counts[i]:
+                x, y = choice(ALL_INDICES), choice(ALL_INDICES)
+                if not sudoku[(x, y)]:
+                    sudoku[(x, y)] = choice(VALID_NUMBERS)
+                    if SudokuAnalyzer.find_conflicts(sudoku, (x, y)):
+                        sudoku[(x, y)] = 0
+                    else:
+                        c += 1
 
         return sudoku
