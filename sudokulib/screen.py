@@ -8,7 +8,7 @@ from kivy.uix.screenmanager import Screen
 from sudokutools.coord import surrounding_coords
 from sudokutools.analyze import SudokuAnalyzer
 from sudokutools.generate import SudokuGenerator
-from sudokutools.solve import solve
+from sudokutools.solve import solve, Bruteforce
 from sudokutools.sudoku import Sudoku
 
 from sudokulib.secret import get_secret
@@ -135,6 +135,7 @@ class GameScreen(GridScreen):
         self.grid.lock_filled_fields(self.orig)
         self.grid.select(None)
 
+
 class MenuScreen(BaseScreen):
     pass
 
@@ -179,10 +180,24 @@ class CustomScreen(GridScreen):
                 title="Sudoku is not unique",
                 text="Your Sudoku has multiple solutions.",
                 callbacks=[
-                    ("Too bad, let me fix that.", lambda: None)])
+                    ("Too bad, let me fix that.", lambda: None),
+                    ("Play anyway!", self._transfer_to_game)])
             popup.open()
         else:
-            print("Playing game!")
+            self._transfer_to_game()
+
+    def _transfer_to_game(self):
+        app = App.get_running_app()
+        app.screens.current = "game"
+        app.screens.current_screen.new_game(self.sudoku, self.sudoku)
+
+    def make_unique(self):
+        sol1 = self.sudoku.copy()
+        Bruteforce.call(sol1)
+        sol2 = self.sudoku.copy()
+        Bruteforce.call(sol2, reverse=True)
+        SudokuGenerator.fix_non_unique(self.sudoku, sol1, sol2)
+        self.grid.sync(self.sudoku)
 
     def save_state(self, store):
         store.put("custom", sudoku=self.sudoku.to_full_str())

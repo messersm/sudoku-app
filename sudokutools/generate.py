@@ -25,7 +25,7 @@ class SudokuGenerator(object):
             # sudoku is not unique - try to fix this.
             if sol1 != sol2:
                 len1 = len(sudoku)
-                cls.__fix_non_unique(sudoku, sol1, sol2)
+                cls.fix_non_unique(sudoku, sol1, sol2)
                 len2 = len(sudoku)
                 print("Corrected non-unique sudoku: %d -> %d" % (len1, len2))
 
@@ -50,7 +50,7 @@ class SudokuGenerator(object):
                 sudoku[(x, y)] = val
 
     @classmethod
-    def __fix_non_unique(cls, sudoku, sol1, sol2):
+    def fix_non_unique(cls, sudoku, sol1, sol2):
         diffs = sol1.compare(sol2)
         shuffle(diffs)
         for (x, y), val1, val2 in diffs:
