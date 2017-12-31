@@ -1,0 +1,8 @@
+
+- Add option for font sizes
+- Add option to automatically remove candidates on input
+- Add old number, when entering candidates on a
+  field with a number ("2" + 8 -> "2, 8" instead of -> "8")
+- Clear custom Sudoku on enter
+- Color candidates
+- Undo

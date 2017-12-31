@@ -2,9 +2,6 @@ from kivy.app import App
 from kivy.uix.label import Label
 from kivy.properties import ListProperty, NumericProperty, ObjectProperty
 
-DEFAULT_FONT_SIZE = "27sp"
-CANDIDATE_FONT_SIZE = "10sp"
-
 BACKGROUND_COLORS = {
     "locked": (0, (0.8, 0.8, 0.8, 1)),
     "default": (1, (1, 1, 1, 1))
@@ -45,6 +42,9 @@ class Field(Label):
     top_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
     bottom_border_width = NumericProperty(DEFAULT_BORDER_WIDTH)
 
+    candidate_font_size = NumericProperty(10)
+    number_font_size = NumericProperty(10)
+
     def __init__(self, coords=(-1, -1), **kwargs):
         super(Field, self).__init__(**kwargs)
         self.coords = coords
@@ -61,6 +61,9 @@ class Field(Label):
         self.__locked = False
         self.__selected = False
         self.__content = None
+        self.__is_number = True
+
+        self.__update_font_sizes()
 
         # select border style
         (x, y) = coords
@@ -81,7 +84,8 @@ class Field(Label):
             self.bottom_border_width = self.THICK_BORDER_WIDTH
 
     def __show_candidates(self):
-        self.font_size = CANDIDATE_FONT_SIZE
+        self.__is_number = False
+        self.font_size = str(self.candidate_font_size) + "sp"
 
         s = ""
 
@@ -100,7 +104,9 @@ class Field(Label):
             self.text = ''
 
     def __show_number(self):
-        self.font_size = DEFAULT_FONT_SIZE
+        self.__is_number = True
+
+        self.font_size = str(self.number_font_size) + "sp"
         if not self.content:
             self.text = ''
         else:
@@ -117,6 +123,15 @@ class Field(Label):
 
         used_highlights.sort()
         self.highlight_color = used_highlights[0][1]
+
+    def __update_font_sizes(self):
+        self.number_font_size = int(self.__app_config.get("visuals", "number_font_size"))
+        self.candidate_font_size = int(self.__app_config.get("visuals", "candidate_font_size"))
+
+        if self.__is_number:
+            self.font_size = str(self.number_font_size) + "sp"
+        else:
+            self.font_size = str(self.candidate_font_size) + "sp"
 
     def reset(self):
         self.lock(False)
@@ -217,3 +232,4 @@ class Field(Label):
 
     def on_settings_change(self, app, section, key, value):
         self.__update_highlight_color()
+        self.__update_font_sizes()

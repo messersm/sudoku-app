@@ -26,5 +26,26 @@
     "section": "highlight",
     "key": "incorrect",
     "default": "0"
+  },
+
+  {
+    "type": "title",
+    "title": "Visuals"
+  },
+  {
+    "type": "numeric",
+    "title": "Candidate font size",
+    "desc": "Font size in which candidates are displayed.",
+    "section": "visuals",
+    "key": "candidate_font_size",
+    "default": "12"
+  },  {
+    "type": "numeric",
+    "title": "Number font size",
+    "desc": "Font size in which numbers are displayed.",
+    "section": "visuals",
+    "key": "number_font_size",
+    "default": "27"
   }
+
 ]
