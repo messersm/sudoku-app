@@ -1,4 +1,38 @@
-# -*- coding: utf-8 -*-
+"""Module that handles abstracted keyboard input.
+
+The ActionManager dispatches events of type 'on_action'.
+A action is a simple string, which is dispatched, when certain keyboard
+inputs (as defined in KEYBOARD_ACTIONS) are registered.
+
+KEYBOARD_ACTIONS is a a dictionary, which maps (keyname, modifiers) pairs
+to action strings. E.g. the entry ("space", ()): "fire" will dispatch a
+"fire" action, if space (without modifiers) is pressed.
+
+Simple modify the KEYBOARD_ACTIONS dictionary in oder to change
+the app behaviour.
+
+Usage:
+
+First create an ActionManager in your app with:
+
+    class MyApp(App):
+        def build(self):
+            self.actions = ActionManager()
+
+Then bind your widget (screen, ...) to the 'on_action' events from
+the ActionManager:
+
+    class MyWidget(Widget):
+        def __init__(self, **kwargs):
+            app = App.get_running_app()
+            app.actions.bind(on_action=self.on_action)
+
+        def on_action(self, manager, action):
+            pass
+
+Note: If you're using screens, please be aware, that actions are send to
+all running screens.
+"""
 
 from collections import namedtuple
 
@@ -45,6 +79,8 @@ class ActionManager(EventDispatcher):
     __events__ = ('on_action', )
 
     def __init__(self, **kwargs):
+        """Create a keyboard object and bind the manager to the keyboard.
+        """
         super(ActionManager, self).__init__(**kwargs)
 
         app = App.get_running_app()
@@ -58,6 +94,9 @@ class ActionManager(EventDispatcher):
         pass
 
     def on_keyboard(self, keyboard, keycode, text, modifiers):
+        """Dispatch an on_action event,
+        if the provided input matches an action in KEYBOARD_ACTIONS.
+        """
         keyname = keycode[1]
 
         name = KEYBOARD_ACTIONS.get((keyname, tuple(modifiers)), None)
