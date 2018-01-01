@@ -181,6 +181,14 @@ class Bruteforce(SolveMethod):
         945261387
         132897654
         786435291
+
+        # This fails for some reason...
+        >>> sud1 = Sudoku.from_str("385471629179625483426003517517209340240007950690504172756008234931742865842256791")
+        >>> sud2 = sud1.copy()
+        >>> Bruteforce.call(sud1)
+        >>> Bruteforce.call(sud2, reverse=True)
+        >>> sud1 == sud2
+        False
         """
 
         empty = sudoku.empty
