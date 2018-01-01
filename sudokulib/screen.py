@@ -190,6 +190,8 @@ class CustomScreen(GridScreen):
         app = App.get_running_app()
         app.screens.current = "game"
         app.screens.current_screen.new_game(self.sudoku, self.sudoku)
+        self.sudoku = Sudoku()
+        self.grid.sync(self.sudoku)
 
     def make_unique(self):
         sol1 = self.sudoku.copy()
