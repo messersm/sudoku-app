@@ -1,11 +1,15 @@
-# -*- coding: utf-8 -*-
+"""Provides secret sudokus for certain inputs in the custom sudoku screen.
+"""
 
 from hashlib import sha1
 
 
 def get_secret(s):
+    """Return a sudoku string if s is a valid secret or None
+    """
     key = sha1(s).hexdigest()
     return SECRETS.get(key, None)
+
 
 SECRETS = {
     "fa56b440b285c9255b136cc4242f14bc8c795147": "" +
