@@ -1,0 +1,4 @@
+Copyright (c) 2012 Søren Nielsen
+URL: https://opengameart.org/content/grayscale-icons
+License: CC-BY 3.0
+License Text: https://creativecommons.org/licenses/by/3.0/legalcode

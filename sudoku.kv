@@ -1,0 +1,231 @@
+#: kivy 1.9
+#: import FadeTransition kivy.uix.screenmanager.FadeTransition
+#: import random random.random
+
+ScreenManager:
+  transition:
+    FadeTransition()
+
+  HomeScreen
+  GameScreen
+  CustomScreen
+
+
+# Screens
+<HomeScreen@Screen>:
+  name: "home"
+
+  BoxLayout:
+    orientation: "vertical"
+
+    # Menu row
+    BoxLayout:
+      orientation: "horizontal"
+      size_hint_y: None
+      height: "50sp"
+      
+      Widget:
+        size_hint_x: 0.925
+
+      ImageButton:
+        size_hint_x: 0.075
+        on_press: app.stop()
+        source: "icons/exit1.png"
+
+    Widget:
+      size_hint_y: 0.2
+
+    LabelButton:
+      size_hint_y: 0.2
+      text: "New Game"
+      on_press: root.parent.current = "game"
+    LabelButton:
+      size_hint_y: 0.2
+      text: "Custom Game"
+      on_press: root.parent.current = "custom"
+
+    Widget:
+      size_hint_y: 0.2
+
+
+<SettingsScreen@BaseScreen>:
+  name: "settings"
+  id: settings
+  box: None
+
+  BoxLayout:
+    orientation: "vertical"
+    id: box
+
+    # Menu row
+    BoxLayout:
+      orientation: "horizontal"
+      size_hint_y: None
+      height: "50sp"
+
+      Widget:
+        size_hint_x: 0.925
+
+      ImageButton:
+        size_hint_x: 0.075
+        on_press: root.parent.current = settings.last_screen
+        source: "icons/close1.png"
+
+    WidgetSeparator
+
+<GameScreen>:
+  name: "game"
+
+  BoxLayout:
+    orientation: "vertical"
+
+    # Menu row
+    BoxLayout:
+      orientation: "horizontal"
+      size_hint_y: None
+      height: "50sp"
+
+      Widget:
+        size_hint_x: 0.925
+
+      ImageButton:
+        size_hint_x: 0.075
+        on_press: app.open_settings()
+        source: "icons/settings1.png"
+
+      ImageButton:
+        size_hint_x: 0.075
+        on_press: root.parent.current = "home"
+        source: "icons/home1.png"
+
+    WidgetSeparator
+    SudokuGrid
+    WidgetSeparator
+
+<CustomScreen@Screen>:
+  name: "custom"
+  
+  Label:
+    text: "Custom Screen"
+
+# Grid and Field
+<SudokuGrid>:
+  canvas.before:
+    Color:
+      rgba: 1, 1, 1, 1
+    Rectangle:
+      size: self.size
+      pos: self.pos
+
+  # horizontal field separators
+  HorizontalGridLine:
+    percent: 1.0/9
+  HorizontalGridLine:
+    percent: 2.0/9
+  HorizontalGridLine:
+    percent: 3.0/9
+    line_width: 1.5
+    color: (0, 0, 0, 1)
+  HorizontalGridLine:
+    percent: 4.0/9
+  HorizontalGridLine:
+    percent: 5.0/9
+  HorizontalGridLine:
+    percent: 6.0/9
+    line_width: 1.5
+    color: (0, 0, 0, 1)
+  HorizontalGridLine:
+    percent: 7.0/9
+  HorizontalGridLine:
+    percent: 8.0/9
+
+  # vertical field separators
+  VerticalGridLine:
+    percent: 1.0/9
+  VerticalGridLine:
+    percent: 2.0/9
+  VerticalGridLine:
+    percent: 3.0/9
+    line_width: 1.5
+    color: (0, 0, 0, 1)
+  VerticalGridLine:
+    percent: 4.0/9
+  VerticalGridLine:
+    percent: 5.0/9
+  VerticalGridLine:
+    percent: 6.0/9
+    line_width: 1.5
+    color: (0, 0, 0, 1)
+  VerticalGridLine:
+    percent: 7.0/9
+  VerticalGridLine:
+    percent: 8.0/9
+
+<HorizontalGridLine@Widget>:
+  percent: 0
+  line_width: 1
+  color: (0.5, 0.5, 0.5, 1)
+
+  canvas:
+    Color:
+      rgba: self.color
+    Line:
+      width: self.line_width
+      points: self.x, int(self.y + self.percent * self.height), self.x + self.width, int(self.y + self.percent * self.height)
+
+<VerticalGridLine@Widget>:
+  percent: 0
+  line_width: 1
+  color: (0.5, 0.5, 0.5, 1)
+
+  canvas:
+    Color:
+      rgba: self.color
+    Line:
+      width: self.line_width
+      points: self.x + self.percent * self.width, self.y, self.x + self.percent * self.width, self.y + self.height
+
+<Field>:
+# None
+
+# Helpers
+<WidgetSeparator@Widget>:
+  size_hint_y: None
+  height: 1
+
+  canvas:
+    Color:
+      rgba: 0.2, 0.2, 0.2, 1
+    Line:
+      width: 1
+      points: self.x + self.width / 100, self.y, self.x + self.width - self.width / 100, self.y
+
+<NumberLabel>:
+  color: (0, 0, 0, 1)
+
+
+<LabelButton>:
+  # White rectangle around widget
+  canvas:
+    Color:
+      rgba: 1, 1, 1, 1
+    Line: # bottom
+      width: 1
+      points: self.x, self.y, self.x + self.width, self.y
+    Line: # top
+      width: 1
+      points: self.x, self.y + self.height, self.x + self.width, self.y + self.height
+    Line: # left
+      width: 1
+      points: self.x, self.y, self.x, self.y + self.height
+    Line: # right
+      width: 1
+      points: self.x + self.width, self.y, self.x + self.width, self.y + self.height
+
+<FieldSelector>:
+  canvas:
+    Color:
+      rgba: 0, 0, 1, 0.3
+    Rectangle:
+      size: self.size
+      pos: self.pos
