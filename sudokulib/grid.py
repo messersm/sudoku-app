@@ -117,7 +117,7 @@ class SudokuGrid(GridLayout):
             field.lock(False)
 
             if not item:
-                candidates = sudoku.candidates.get((x, y), None)
+                candidates = sudoku.get_candidates(x, y)
                 field.content = candidates
             elif item in VALID_NUMBERS:
                 field.content = item
