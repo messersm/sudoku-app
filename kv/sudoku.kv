@@ -129,10 +129,10 @@
     NumberButton:
         text: "9"
     Button:
-        text: "DEL" # "⌫" # TODO make backspace symbol work (missing font)
+        text: "DEL" # "DEL" # TODO make backspace symbol work (missing font)
         size_hint_x: 1.0 / len(self.parent.children)
         on_release: self.parent.handler.on_action("delete")
     Button:
-        text: "OK" # "⏎"
+        text: "OK" # "OK"
         size_hint_x: 1.0 / len(self.parent.children)
         on_release: self.parent.handler.on_action("confirm")
